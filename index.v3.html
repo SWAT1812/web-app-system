@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA 出題系統</title>
+
+    <meta name="theme-color" content="#007bff">
+    <link rel="apple-touch-icon" href="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000036-a265fa2660/cda_app_icon_id10000.ico?ph=925d84add0">
+    
+    <link rel="manifest" href="data:application/json,{
+        &quot;name&quot;: &quot;PWA 出題系統&quot;,
+        &quot;short_name&quot;: &quot;出題系統&quot;,
+        &quot;start_url&quot;: &quot;.&quot;,
+        &quot;display&quot;: &quot;standalone&quot;,
+        &quot;background_color&quot;: &quot;#ffffff&quot;,
+        &quot;theme_color&quot;: &quot;#007bff&quot;,
+        &quot;description&quot;: &quot;一個現代化的 PWA 出題工具&quot;,
+        &quot;icons&quot;: [{
+            &quot;src&quot;: &quot;https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000036-a265fa2660/cda_app_icon_id10000.ico?ph=925d84add0&quot;,
+            &quot;sizes&quot;: &quot;192x192&quot;,
+            &quot;type&quot;: &quot;image/x-icon&quot;
+        }]
+    }">
+    
+    <link rel="icon" href="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000036-a265fa2660/cda_app_icon_id10000.ico?ph=925d84add0" type="image/x-icon">
+
+    <style>
+        /* --- 全局樣式 --- */
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100%;
+            overflow: hidden; /* 防止滾動 */
+        }
+
+        .page {
+            display: none; /* 預設隱藏所有頁面 */
+            height: 100vh;
+            width: 100%;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .page.active {
+            display: flex; /* 顯示當前頁面 */
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        button, input, textarea, select {
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        button.secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        button.secondary:hover {
+            background-color: #5a6268;
+        }
+
+        button.danger {
+            background-color: #dc3545;
+        }
+        
+        button.danger:hover {
+            background-color: #c82333;
+        }
+        
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* --- 主畫面 (#home-page) --- */
+        #home-page .container {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        #home-page h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .action-cards {
+            display: flex;
+            gap: 30px;
+            margin-top: 40px;
+            flex-wrap: wrap; /* 適應手機 */
+            justify-content: center;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            width: 250px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            margin-bottom: 20px;
+            border-radius: 50%;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            color: var(--primary-color);
+        }
+
+        /* --- 出題介面 (#editor-page) --- */
+        .editor-header {
+            background-color: var(--card-bg);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .editor-header h2 {
+            font-size: 1.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 20px;
+        }
+
+        .editor-header .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .editor-body {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden; /* 關鍵：讓子元素滾動 */
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #e9ecef;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+        }
+        
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+        
+        .sidebar-section h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto; /* 僅主內容可滾動 */
+        }
+        
+        .question-list-item {
+            background: var(--card-bg);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .question-list-item.active {
+            border-color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* (新) V3 排序按鈕樣式 */
+        .question-list-controls {
+            display: flex;
+            flex-direction: column;
+            margin-right: 10px;
+        }
+        .move-q-btn {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            padding: 0 5px;
+            font-size: 1.2rem;
+            line-height: 1;
+            opacity: 0.6;
+            height: 16px;
+        }
+        .move-q-btn:hover {
+            opacity: 1;
+            background-color: #f1f3f5;
+        }
+        .move-q-btn.hidden {
+            visibility: hidden;
+        }
+        
+        .question-list-item-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+        }
+        
+        .delete-question-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            font-size: 1.2rem;
+            padding: 0 5px;
+            opacity: 0.5;
+            flex-shrink: 0; /* 防止按鈕被壓縮 */
+        }
+        
+        .question-list-item:hover .delete-question-btn {
+            opacity: 1;
+        }
+
+        #add-question-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #add-question-buttons button {
+            flex: 1;
+            font-size: 0.9rem;
+            padding: 10px;
+        }
+
+        .editor-form {
+            background-color: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 25px;
+        }
+        
+        .editor-form.hidden {
+            display: none;
+        }
+        
+        #no-question-selected {
+            text-align: center;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: var(--secondary-color);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .form-group input[type="text"],
+        .form-group input[type="url"],
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .options-container .option-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .options-container input[type="text"] {
+            flex-grow: 1;
+        }
+        
+        .options-container .delete-option-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            padding: 5px;
+            font-size: 1.2rem;
+        }
+        
+        .set-answer-btn {
+            background: #28a745;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        
+        .set-answer-btn.correct-answer {
+            background: #208038;
+            border: 2px solid #fff;
+            box-shadow: 0 0 5px #28a745;
+        }
+
+        /* --- 進階設定 --- */
+        .switch-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .switch-group label {
+            margin-bottom: 0;
+            font-weight: normal;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+        
+        #time-limit-input {
+            display: inline-block;
+            width: 80px;
+            margin-left: 10px;
+        }
+
+        /* --- 彈出框架 (Modal) --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none; /* 預設隱藏 */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal.active {
+            display: flex; /* 顯示 */
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .modal-content p {
+            margin-bottom: 20px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        #file-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .file-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-item:hover {
+            background-color: #f1f3f5;
+        }
+        
+        .file-item.selected {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .file-item .delete-file-btn {
+            background: none;
+            border: none;
+            color: #dc3545;
+            padding: 0;
+            font-size: 1rem;
+            opacity: 0.6;
+        }
+        
+        .file-item.selected .delete-file-btn {
+            color: white;
+            opacity: 1;
+        }
+        
+        /* (新) V3 程式碼框架的樣式調整 */
+        #code-display {
+            width: 100%;
+            height: 40vh;
+            resize: none;
+            font-family: monospace;
+            font-size: 0.85rem;
+            background: #f4f4f4;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        /* --- 響應式設計 --- */
+        @media (max-width: 768px) {
+            .action-cards {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .card {
+                width: 90%;
+                max-width: 300px;
+            }
+
+            .editor-body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-shrink: 0;
+                overflow-y: visible;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            
+            .main-content {
+                padding: 15px;
+                flex-grow: 1;
+                /* 確保在手機上可以滾動 */
+            }
+            
+            .editor-header {
+                padding: 15px;
+            }
+            
+            .editor-header .actions {
+                gap: 5px;
+            }
+            
+            .editor-header button {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="home-page" class="page active">
+        <div class="container">
+            <h1>歡迎，今天要如何開始？</h1>
+            <div class="action-cards">
+                <div class="card" id="open-file-btn">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGS3__w_1dR3HUQEOGVzeU-thL66ibJAmqx4oBqqjeekqscgzt_jD6vEVgE8dqHnBRbJw&usqp=CAU" alt="開啟舊檔">
+                    <h2>開啟舊檔</h2>
+                </div>
+                <div class="card" id="new-file-btn">
+                    <img src="https://media.istockphoto.com/id/1253202013/zh/%E5%90%91%E9%87%8F/%E5%BB%BA%E7%AB%B0%E6%96%B0%E6%AA%94%E6%A1%88%E5%9C%96%E7%A4%BA.jpg?s=612x612&w=0&k=20&c=oqS3OHmS183dVoneJ01iQgIjnPQYMIE5uMfOShOt7n0=" alt="建立新題目">
+                    <h2>建立新題目</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="editor-page" class="page">
+        <header class="editor-header">
+            <h2 id="editor-title">新測驗</h2>
+            <div class="actions">
+                <button id="save-btn">儲存檔案</button>
+                <button id="exit-btn" class="secondary">退出</button>
+            </div>
+        </header>
+
+        <div class="editor-body">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>題目列表</h3>
+                    <div id="question-list">
+                        </div>
+                    <div id="add-question-buttons" style="margin-top: 20px;">
+                        <button id="add-text-question" class="secondary">新增文字</button>
+                        <button id="add-media-question" class="secondary">新增多媒體</button>
+                    </div>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3>考試設定</h3>
+                    <div class="form-group">
+                        <label for="exam-rules">考試說明</label>
+                        <textarea id="exam-rules" rows="5" placeholder="請輸入考試規則與說明..."></textarea>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>進階設定</h3>
+                    <div class="form-group">
+                        <div class="switch-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="cheat-detect-toggle">
+                                <span class="slider"></span>
+                            </label>
+                            <label for="cheat-detect-toggle">視窗偵測 (防作弊)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="switch-group">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="time-limit-toggle">
+                                <span class="slider"></span>
+                            </label>
+                            <label for="time-limit-toggle">設定作答時間</label>
+                            <input type="number" id="time-limit-input" min="1" value="30" style="display: none;">
+                            <span id="time-limit-unit" style="display: none;">分鐘</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main-content">
+                <div id="no-question-selected">
+                    <p>請從左側新增或選取一個題目以開始編輯。</p>
+                </div>
+                
+                <div id="question-editor" class="editor-form hidden">
+                    <input type="hidden" id="question-type">
+                    
+                    <div class="form-group">
+                        <label for="question-text-input">題目內容</label>
+                        <textarea id="question-text-input" rows="3" placeholder="請輸入題目..."></textarea>
+                    </div>
+                    
+                    <div id="media-input-group" class="form-group" style="display: none;">
+                        <label for="media-type-select">媒體類型</label>
+                        <select id="media-type-select">
+                            <option value="image">圖片 (Image)</option>
+                            <option value="video">影片 (Video)</option>
+                            <option value="audio">音訊 (Audio)</option>
+                        </select>
+                        <label for="media-url-input" style="margin-top: 10px;">媒體網址 (URL)</label>
+                        <input type="url" id="media-url-input" placeholder="請貼上圖片、影片或音訊的網址...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>選項 (請點擊 <span>&#10004;</span> 設定為正確答案)</label>
+                        <div id="options-container">
+                            </div>
+                        <button id="add-option-btn" class="secondary" style="margin-top: 10px;">新增選項</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="open-modal" class="modal">
+        <div class="modal-content">
+            <h3>開啟舊檔</h3>
+            <div id="file-list-container">
+                <p id="no-files-message" style="display: none; text-align: center; color: var(--secondary-color);">沒有儲存任何檔案。</p>
+                <div id="file-list">
+                    </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-open-btn" class="secondary">取消</button>
+                <button id="confirm-open-btn">開啟</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="save-modal" class="modal">
+        <div class="modal-content">
+            <h3>儲存檔案</h3>
+            <div class="form-group">
+                <label for="file-name-input">檔案名稱</label>
+                <input type="text" id="file-name-input" placeholder="請輸入檔案名稱...">
+            </div>
+            <div class="modal-buttons">
+                <button id="cancel-save-btn" class="secondary">取消</button>
+                <button id="confirm-save-btn">儲存</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="export-modal" class="modal">
+        <div class="modal-content">
+            <h3>儲存成功！</h3>
+            <p>檔案「<span id="saved-file-name"></span>」已儲存在您的瀏覽器中。</p>
+            <p>您現在也可以將此測驗匯出為一個可獨立運作的 HTML 檔案。</p>
+            <div class="modal-buttons">
+                <button id="export-html-btn">匯出測驗 (HTML)</button>
+                <button id="close-export-btn" class="secondary">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="code-modal" class="modal">
+        <div class="modal-content" style="max-width: 80vw; width: 90%;">
+            <h3>匯出的 HTML 程式碼</h3>
+            <div class="form-group">
+                <textarea id="code-display" readonly></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button id="download-code-btn" class="secondary">下載 .html 檔案</button>
+                <button id="copy-code-btn">複製程式碼</button>
+                <button id="close-code-btn" class="secondary">關閉</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="replace-modal" class="modal">
+        <div class="modal-content">
+            <h3>檔案名稱重複</h3>
+            <p>檔案「<span id="duplicate-name"></span>」已經存在。您要取代它嗎？</p>
+            <div class="modal-buttons">
+                <button id="cancel-replace-btn" class="secondary">修改檔名</button>
+                <button id="confirm-replace-btn" class="danger">取代</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="exit-warning-modal" class="modal">
+        <div class="modal-content">
+            <h3>您尚未儲存！</h3>
+            <p>您所做的變更尚未儲存。您要先儲存檔案嗎？</p>
+            <div class="modal-buttons">
+                <button id="exit-nosave-btn" class="danger">退出不儲存</button>
+                <button id="exit-cancel-btn" class="secondary">取消</button>
+                <button id="exit-save-btn">儲存檔案</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 狀態管理 ---
+            const DB_KEY = 'pwaQuizAppProjects'; // localStorage 的 key
+            let appState = {
+                currentPage: 'home', // 'home' or 'editor'
+                currentProjectName: null, // 當前開啟的專案名稱
+                currentEditingQuestionId: null, // 正在編輯的題目 ID
+                isDirty: false, // 檔案是否被修改過
+                projectData: {
+                    title: '新測驗',
+                    rules: '',
+                    settings: {
+                        cheatDetect: false,
+                        timeLimit: {
+                            enabled: false,
+                            duration: 30 // in minutes
+                        }
+                    },
+                    questions: [] // { id, type: 'text'/'media', text, media: {type, src}, options: [], correct: 0 }
+                }
+            };
+
+            // --- 頁面元素 ---
+            const pages = {
+                home: document.getElementById('home-page'),
+                editor: document.getElementById('editor-page')
+            };
+
+            // --- 主畫面按鈕 ---
+            const openFileBtn = document.getElementById('open-file-btn');
+            const newFileBtn = document.getElementById('new-file-btn');
+
+            // --- 編輯器元素 ---
+            const editorTitle = document.getElementById('editor-title');
+            const saveBtn = document.getElementById('save-btn');
+            const exitBtn = document.getElementById('exit-btn');
+            const questionList = document.getElementById('question-list');
+            const addTextQuestionBtn = document.getElementById('add-text-question');
+            const addMediaQuestionBtn = document.getElementById('add-media-question');
+            const examRulesInput = document.getElementById('exam-rules');
+            const cheatDetectToggle = document.getElementById('cheat-detect-toggle');
+            const timeLimitToggle = document.getElementById('time-limit-toggle');
+            const timeLimitInput = document.getElementById('time-limit-input');
+            const timeLimitUnit = document.getElementById('time-limit-unit');
+            const noQuestionSelected = document.getElementById('no-question-selected');
+            const questionEditor = document.getElementById('question-editor');
+            const questionTypeInput = document.getElementById('question-type');
+            const questionTextInput = document.getElementById('question-text-input');
+            const mediaInputGroup = document.getElementById('media-input-group');
+            const mediaTypeSelect = document.getElementById('media-type-select');
+            const mediaUrlInput = document.getElementById('media-url-input');
+            const optionsContainer = document.getElementById('options-container');
+            const addOptionBtn = document.getElementById('add-option-btn');
+
+            // --- Modal 元素 ---
+            const openModal = document.getElementById('open-modal');
+            const fileList = document.getElementById('file-list');
+            const noFilesMessage = document.getElementById('no-files-message');
+            const cancelOpenBtn = document.getElementById('cancel-open-btn');
+            const confirmOpenBtn = document.getElementById('confirm-open-btn');
+
+            const saveModal = document.getElementById('save-modal');
+            const fileNameInput = document.getElementById('file-name-input');
+            const cancelSaveBtn = document.getElementById('cancel-save-btn');
+            const confirmSaveBtn = document.getElementById('confirm-save-btn');
+            
+            const exportModal = document.getElementById('export-modal');
+            const savedFileName = document.getElementById('saved-file-name');
+            const exportHtmlBtn = document.getElementById('export-html-btn');
+            const closeExportBtn = document.getElementById('close-export-btn');
+
+            // (新) 程式碼 Modal 元素
+            const codeModal = document.getElementById('code-modal');
+            const codeDisplay = document.getElementById('code-display');
+            const copyCodeBtn = document.getElementById('copy-code-btn');
+            const closeCodeBtn = document.getElementById('close-code-btn');
+            const downloadCodeBtn = document.getElementById('download-code-btn');
+
+            const replaceModal = document.getElementById('replace-modal');
+            const duplicateNameSpan = document.getElementById('duplicate-name');
+            const cancelReplaceBtn = document.getElementById('cancel-replace-btn');
+            const confirmReplaceBtn = document.getElementById('confirm-replace-btn');
+
+            const exitWarningModal = document.getElementById('exit-warning-modal');
+            const exitNosaveBtn = document.getElementById('exit-nosave-btn');
+            const exitCancelBtn = document.getElementById('exit-cancel-btn');
+            const exitSaveBtn = document.getElementById('exit-save-btn');
+            
+            // --- 監聽「已修改」狀態 ---
+            const markAsDirty = () => {
+                appState.isDirty = true;
+                updateEditorTitle();
+            };
+            
+            const markAsClean = () => {
+                appState.isDirty = false;
+                updateEditorTitle();
+            };
+            
+            const updateEditorTitle = () => {
+                let title = appState.projectData.title || '新測驗';
+                if (appState.isDirty) {
+                    title += " * (未儲存)";
+                }
+                editorTitle.textContent = title;
+            };
+
+            // 監聽所有輸入
+            document.querySelectorAll('#editor-page input, #editor-page textarea, #editor-page select').forEach(el => {
+                el.addEventListener('input', markAsDirty);
+                el.addEventListener('change', markAsDirty);
+            });
+
+            // --- 頁面導航 ---
+            function navigateTo(pageName) {
+                appState.currentPage = pageName;
+                Object.values(pages).forEach(page => page.classList.remove('active'));
+                if (pages[pageName]) {
+                    pages[pageName].classList.add('active');
+                }
+            }
+
+            // --- 資料庫 (LocalStorage) 操作 ---
+            const getProjects = () => {
+                const data = localStorage.getItem(DB_KEY);
+                return data ? JSON.parse(data) : {};
+            };
+
+            const getProject = (name) => {
+                return getProjects()[name] || null;
+            };
+
+            const saveProject = (name, data) => {
+                const projects = getProjects();
+                projects[name] = data;
+                localStorage.setItem(DB_KEY, JSON.stringify(projects));
+                appState.currentProjectName = name; // 更新當前專案名稱
+                appState.projectData.title = name; // 同步標題
+                markAsClean(); // 儲存後標記為乾淨
+            };
+            
+            const deleteProject = (name) => {
+                const projects = getProjects();
+                delete projects[name];
+                localStorage.setItem(DB_KEY, JSON.stringify(projects));
+                populateFileList(); // 刪除後重新整理列表
+            };
+            
+            const projectExists = (name) => {
+                return getProjects().hasOwnProperty(name);
+            };
+
+            // --- Modal 控制 ---
+            const showModal = (modal) => modal.classList.add('active');
+            const hideModal = (modal) => modal.classList.remove('active');
+
+            // --- 主畫面邏輯 ---
+            newFileBtn.addEventListener('click', () => {
+                resetEditor();
+                navigateTo('editor');
+            });
+
+            openFileBtn.addEventListener('click', () => {
+                populateFileList();
+                showModal(openModal);
+            });
+
+            // --- 開啟舊檔 Modal 邏輯 ---
+            let selectedFileToOpen = null;
+
+            function populateFileList() {
+                const projects = getProjects();
+                const projectNames = Object.keys(projects);
+                fileList.innerHTML = '';
+                
+                if (projectNames.length === 0) {
+                    noFilesMessage.style.display = 'block';
+                    fileList.style.display = 'none';
+                    confirmOpenBtn.disabled = true;
+                } else {
+                    noFilesMessage.style.display = 'none';
+                    fileList.style.display = 'block';
+                    confirmOpenBtn.disabled = true; // 預設禁用
+                    
+                    projectNames.forEach(name => {
+                        const item = document.createElement('div');
+                        item.className = 'file-item';
+                        item.dataset.name = name;
+                        
+                        const text = document.createElement('span');
+                        text.textContent = name;
+                        
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.className = 'delete-file-btn';
+                        deleteBtn.innerHTML = '&times;';
+                        
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.stopPropagation(); // 防止觸發選取
+                            if (confirm(`您確定要刪除檔案「${name}」嗎？此操作無法復原。`)) {
+                                deleteProject(name);
+                            }
+                        });
+                        
+                        item.appendChild(text);
+                        item.appendChild(deleteBtn);
+                        
+                        item.addEventListener('click', () => {
+                            // 移除其他選取
+                            fileList.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
+                            // 新增選取
+                            item.classList.add('selected');
+                            selectedFileToOpen = name;
+                            confirmOpenBtn.disabled = false;
+                        });
+                        fileList.appendChild(item);
+                    });
+                }
+            }
+
+            cancelOpenBtn.addEventListener('click', () => {
+                hideModal(openModal);
+                selectedFileToOpen = null;
+            });
+
+            confirmOpenBtn.addEventListener('click', () => {
+                if (selectedFileToOpen) {
+                    const data = getProject(selectedFileToOpen);
+                    if (data) {
+                        loadProject(selectedFileToOpen, data);
+                        hideModal(openModal);
+                        navigateTo('editor');
+                    }
+                }
+            });
+
+            // --- 編輯器邏輯 ---
+            
+            // 重設編輯器狀態
+            function resetEditor() {
+                appState.currentProjectName = null;
+                appState.currentEditingQuestionId = null;
+                appState.projectData = {
+                    title: '新測驗',
+                    rules: '',
+                    settings: {
+                        cheatDetect: false,
+                        timeLimit: { enabled: false, duration: 30 }
+                    },
+                    questions: []
+                };
+                markAsClean(); // 重設為乾淨
+                loadEditorUI();
+            }
+            
+            // 載入專案資料到 UI
+            function loadProject(name, data) {
+                appState.currentProjectName = name;
+                appState.projectData = data; // 載入資料
+                appState.projectData.title = name; // 名稱就是標題
+                appState.currentEditingQuestionId = null; // 預設不選取任何題目
+                markAsClean(); // 剛載入時是乾淨的
+                loadEditorUI();
+            }
+
+            // 根據 appState.projectData 更新整個編輯器 UI
+            function loadEditorUI() {
+                // 1. 更新標題
+                updateEditorTitle();
+                fileNameInput.value = appState.projectData.title; // 同步檔名輸入框
+                
+                // 2. 更新設定
+                examRulesInput.value = appState.projectData.rules;
+                const settings = appState.projectData.settings;
+                cheatDetectToggle.checked = settings.cheatDetect;
+                timeLimitToggle.checked = settings.timeLimit.enabled;
+                timeLimitInput.value = settings.timeLimit.duration;
+                // 觸發一次 timeLimitToggle 的 change 事件來更新 UI
+                timeLimitToggle.dispatchEvent(new Event('change'));
+                
+                // 3. 渲染題目列表
+                renderQuestionList();
+                
+                // 4. 渲染題目編輯區 (預設不選)
+                showQuestionEditor(null);
+            }
+            
+            // 儲存 UI 上的資料回 appState.projectData (在儲存前呼叫)
+            function saveUIToData() {
+                // 1. 先儲存正在編輯的題目 (如果有的話)
+                saveCurrentQuestion();
+                
+                // 2. 儲存全域設定
+                appState.projectData.rules = examRulesInput.value;
+                appState.projectData.settings.cheatDetect = cheatDetectToggle.checked;
+                appState.projectData.settings.timeLimit.enabled = timeLimitToggle.checked;
+                appState.projectData.settings.timeLimit.duration = parseInt(timeLimitInput.value) || 30;
+            }
+
+            // --- 編輯器 - 側邊欄設定 ---
+            timeLimitToggle.addEventListener('change', () => {
+                const show = timeLimitToggle.checked;
+                timeLimitInput.style.display = show ? 'inline-block' : 'none';
+                timeLimitUnit.style.display = show ? 'inline-block' : 'none';
+            });
+
+            // --- 編輯器 - 題目列表 ---
+            
+            /**
+             * (新) V3 函式：移動題目順序
+             */
+            function moveQuestion(id, direction) {
+                const questions = appState.projectData.questions;
+                const index = questions.findIndex(q => q.id === id);
+
+                if (direction === 'up' && index > 0) {
+                    // 向上交換
+                    [questions[index], questions[index - 1]] = [questions[index - 1], questions[index]];
+                } else if (direction === 'down' && index < questions.length - 1) {
+                    // 向下交換
+                    [questions[index], questions[index + 1]] = [questions[index + 1], questions[index]];
+                }
+
+                markAsDirty();
+                renderQuestionList(); // 重新渲染列表
+            }
+            
+            /**
+             * (修改) V3：加入排序按鈕
+             */
+            function renderQuestionList() {
+                questionList.innerHTML = '';
+                const questions = appState.projectData.questions; // 取得題目陣列
+                
+                questions.forEach((q, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'question-list-item';
+                    item.dataset.id = q.id;
+                    if (q.id === appState.currentEditingQuestionId) {
+                        item.classList.add('active');
+                    }
+                    
+                    // (新) V3 排序按鈕
+                    const controls = document.createElement('div');
+                    controls.className = 'question-list-controls';
+                    
+                    const upBtn = document.createElement('button');
+                    upBtn.className = 'move-q-btn move-up-btn';
+                    upBtn.innerHTML = '&uarr;'; // 上箭頭
+                    if (index === 0) upBtn.classList.add('hidden'); // 第一個隱藏
+                    upBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        moveQuestion(q.id, 'up');
+                    };
+
+                    const downBtn = document.createElement('button');
+                    downBtn.className = 'move-q-btn move-down-btn';
+                    downBtn.innerHTML = '&darr;'; // 下箭頭
+                    if (index === questions.length - 1) downBtn.classList.add('hidden'); // 最後一個隱藏
+                    downBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        moveQuestion(q.id, 'down');
+                    };
+
+                    controls.appendChild(upBtn);
+                    controls.appendChild(downBtn);
+                    item.appendChild(controls); // 先加入排序按鈕
+                    
+                    // (舊) 題目文字
+                    const text = document.createElement('span');
+                    text.className = 'question-list-item-text';
+                    text.textContent = `(${index + 1}) ${q.text || '未命名題目'}`; // 顯示 (1), (2)...
+                    item.appendChild(text);
+                    
+                    // (舊) 刪除按鈕
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'delete-question-btn';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if (confirm(`確定要刪除「${q.text || '此題目'}」嗎？`)) {
+                            deleteQuestion(q.id);
+                        }
+                    };
+                    item.appendChild(deleteBtn);
+                    
+                    // (舊) 點擊事件
+                    item.addEventListener('click', () => {
+                        selectQuestion(q.id);
+                    });
+                    
+                    questionList.appendChild(item);
+                });
+            }
+            
+            function addQuestion(type) {
+                // 1. 先儲存目前編輯中的題目
+                saveCurrentQuestion();
+                
+                // 2. 建立新題目
+                const newId = Date.now().toString();
+                const newQuestion = {
+                    id: newId,
+                    type: type,
+                    text: '',
+                    media: { type: 'image', src: '' },
+                    options: [], // 確保 options 是空陣列
+                    correct: null // 預設沒有答案
+                };
+                
+                // 3. 新增 2 個預設選項
+                newQuestion.options.push({ text: '選項 A' });
+                newQuestion.options.push({ text: '選項 B' });
+
+                // 4. 加入資料
+                appState.projectData.questions.push(newQuestion);
+                
+                // 5. 重新渲染列表
+                renderQuestionList();
+                
+                // 6. 自動選取新題目
+                selectQuestion(newId);
+                
+                // 7. 標記為已修改
+                markAsDirty();
+            }
+            
+            addTextQuestionBtn.addEventListener('click', () => addQuestion('text'));
+            addMediaQuestionBtn.addEventListener('click', () => addQuestion('media'));
+            
+            function deleteQuestion(id) {
+                appState.projectData.questions = appState.projectData.questions.filter(q => q.id !== id);
+                
+                // 如果刪除的是正在編輯的題目，就關閉編輯器
+                if (appState.currentEditingQuestionId === id) {
+                    showQuestionEditor(null);
+                }
+                
+                renderQuestionList();
+                markAsDirty();
+            }
+
+            // --- 編輯器 - 題目編輯區 ---
+
+            /**
+             * V2 功能：將目前 UI 上的選項文字 同步回 appState
+             */
+            function syncOptionsFromUI(question) {
+                if (!question || !question.options) return;
+                const optionItems = optionsContainer.querySelectorAll('.option-item');
+                
+                optionItems.forEach((item, index) => {
+                    // 確保 state 和 UI 上的選項數量一致
+                    if (question.options[index]) {
+                        const text = item.querySelector('input[type="text"]').value;
+                        question.options[index].text = text;
+                    }
+                });
+            }
+            
+            function selectQuestion(id) {
+                // 1. 先儲存上一個編輯的題目
+                saveCurrentQuestion();
+                
+                // 2. 設定新的 ID
+                appState.currentEditingQuestionId = id;
+                
+                // 3. 載入新題目的資料
+                const question = appState.projectData.questions.find(q => q.id === id);
+                showQuestionEditor(question);
+                
+                // 4. 更新列表中的 'active' 狀態
+                renderQuestionList();
+            }
+            
+            // 儲存當前編輯器中的資料 到 appState.projectData
+            function saveCurrentQuestion() {
+                const currentId = appState.currentEditingQuestionId;
+                if (!currentId) return; // 沒有選取題目，不用存
+
+                const question = appState.projectData.questions.find(q => q.id === currentId);
+                if (!question) return; // 找不到題目 (可能剛被刪除)
+                
+                // V2: 儲存前，先同步一次 UI 上的選項文字
+                syncOptionsFromUI(question);
+                
+                // 儲存文字
+                question.text = questionTextInput.value;
+                
+                // 儲存多媒體
+                if (question.type === 'media') {
+                    question.media.type = mediaTypeSelect.value;
+                    question.media.src = mediaUrlInput.value;
+                }
+            }
+
+            // 根據傳入的 question 物件顯示編輯器
+            function showQuestionEditor(question) {
+                if (!question) {
+                    appState.currentEditingQuestionId = null;
+                    questionEditor.classList.add('hidden');
+                    noQuestionSelected.classList.remove('hidden');
+                    return;
+                }
+                
+                noQuestionSelected.classList.add('hidden');
+                questionEditor.classList.remove('hidden');
+                
+                // 載入資料
+                questionTypeInput.value = question.type;
+                questionTextInput.value = question.text;
+                
+                // 媒體
+                if (question.type === 'media') {
+                    mediaInputGroup.style.display = 'block';
+                    mediaTypeSelect.value = question.media.type;
+                    mediaUrlInput.value = question.media.src;
+                } else {
+                    mediaInputGroup.style.display = 'none';
+                }
+                
+                // 選項
+                renderOptions(question);
+            }
+            
+            function renderOptions(question) {
+                optionsContainer.innerHTML = '';
+                // 確保 question.options 是一個陣列
+                (question.options || []).forEach((opt, index) => {
+                    addOptionUI(opt.text, index, question.correct === index);
+                });
+            }
+            
+            function addOptionUI(text, index, isCorrect) {
+                const item = document.createElement('div');
+                item.className = 'option-item';
+                item.dataset.index = index; // 儲存索引
+                
+                const setAnswerBtn = document.createElement('button');
+                setAnswerBtn.className = 'set-answer-btn';
+                setAnswerBtn.innerHTML = '&#10004;'; // check mark
+                if (isCorrect) {
+                    setAnswerBtn.classList.add('correct-answer');
+                }
+                
+                const textInput = document.createElement('input');
+                textInput.type = 'text';
+                textInput.value = text;
+                textInput.placeholder = `選項 ${index + 1}`;
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-option-btn';
+                deleteBtn.innerHTML = '&times;';
+                
+                item.appendChild(setAnswerBtn);
+                item.appendChild(textInput);
+                item.appendChild(deleteBtn);
+                optionsContainer.appendChild(item);
+                
+                // --- 選項按鈕事件 ---
+                textInput.addEventListener('input', markAsDirty);
+                
+                deleteBtn.addEventListener('click', () => {
+                    const q = appState.projectData.questions.find(q => q.id === appState.currentEditingQuestionId);
+                    if (q) {
+                        // V2: 動作前先同步
+                        syncOptionsFromUI(q);
+
+                        q.options.splice(index, 1);
+                        // 如果刪除的是正確答案，重設答案
+                        if (q.correct === index) {
+                            q.correct = null;
+                        } else if (q.correct > index) {
+                            q.correct -= 1; // 答案索引往前移
+                        }
+                        renderOptions(q); // 重新渲染
+                        markAsDirty();
+                    }
+                });
+                
+                setAnswerBtn.addEventListener('click', () => {
+                    const q = appState.projectData.questions.find(q => q.id === appState.currentEditingQuestionId);
+                    if (q) {
+                        // V2: 動作前先同步
+                        syncOptionsFromUI(q);
+                        
+                        q.correct = index; // 設定答案
+                        renderOptions(q); // 重新渲染以更新 UI
+                        markAsDirty();
+                    }
+                });
+            }
+            
+            addOptionBtn.addEventListener('click', () => {
+                const q = appState.projectData.questions.find(q => q.id === appState.currentEditingQuestionId);
+                if (q) {
+                    // V2: 動作前先同步
+                    syncOptionsFromUI(q);
+                    
+                    q.options.push({ text: '' });
+                    renderOptions(q); // 重新渲染
+                    markAsDirty();
+                }
+            });
+
+
+            // --- 編輯器 - 儲存 & 退出 ---
+            
+            saveBtn.addEventListener('click', () => {
+                saveUIToData();
+                const currentName = appState.currentProjectName;
+                if (currentName) {
+                    saveProject(currentName, appState.projectData);
+                    showExportModal(currentName);
+                } else {
+                    fileNameInput.value = appState.projectData.title;
+                    showModal(saveModal);
+                }
+            });
+
+            exitBtn.addEventListener('click', () => {
+                if (appState.isDirty) {
+                    showModal(exitWarningModal);
+                } else {
+                    goHome();
+                }
+            });
+            
+            // --- 儲存 Modal 邏輯 ---
+            cancelSaveBtn.addEventListener('click', () => hideModal(saveModal));
+            
+            confirmSaveBtn.addEventListener('click', () => {
+                const newName = fileNameInput.value.trim();
+                if (!newName) {
+                    alert('請輸入檔案名稱！');
+                    return;
+                }
+                
+                if (projectExists(newName) && newName !== appState.currentProjectName) {
+                    duplicateNameSpan.textContent = newName;
+                    showModal(replaceModal);
+                } else {
+                    saveAndCloseModals(newName);
+                }
+            });
+            
+            // --- 檔名重複 Modal 邏輯 ---
+            cancelReplaceBtn.addEventListener('click', () => {
+                hideModal(replaceModal);
+                showModal(saveModal);
+                fileNameInput.focus();
+            });
+            
+            confirmReplaceBtn.addEventListener('click', () => {
+                const newName = fileNameInput.value.trim();
+                saveAndCloseModals(newName);
+            });
+            
+            function saveAndCloseModals(name) {
+                appState.projectData.title = name;
+                saveProject(name, appState.projectData);
+                hideModal(saveModal);
+                hideModal(replaceModal);
+                showExportModal(name);
+            }
+            
+            function showExportModal(name) {
+                savedFileName.textContent = name;
+                showModal(exportModal);
+            }
+            
+            closeExportBtn.addEventListener('click', () => {
+                hideModal(exportModal);
+            });
+            
+            // --- 退出警告 Modal 邏輯 ---
+            exitCancelBtn.addEventListener('click', () => hideModal(exitWarningModal));
+            
+            exitNosaveBtn.addEventListener('click', () => {
+                hideModal(exitWarningModal);
+                goHome();
+            });
+            
+            exitSaveBtn.addEventListener('click', () => {
+                hideModal(exitWarningModal);
+                saveBtn.click();
+            });
+
+            // --- 程式碼 Modal 邏輯 ---
+            closeCodeBtn.addEventListener('click', () => {
+                hideModal(codeModal);
+            });
+            
+            copyCodeBtn.addEventListener('click', () => {
+                codeDisplay.select();
+                try {
+                    // 使用 navigator.clipboard (更現代)
+                    navigator.clipboard.writeText(codeDisplay.value).then(() => {
+                        copyCodeBtn.textContent = '複製成功!';
+                        setTimeout(() => {
+                            copyCodeBtn.textContent = '複製程式碼';
+                        }, 2000);
+                    }, () => {
+                        // 降級處理 (如果 clipboard 失敗)
+                        document.execCommand('copy');
+                        copyCodeBtn.textContent = '複製成功! (fallback)';
+                        setTimeout(() => {
+                            copyCodeBtn.textContent = '複製程式碼';
+                        }, 2000);
+                    });
+                } catch (err) {
+                    // 舊版瀏覽器降級
+                    document.execCommand('copy');
+                    copyCodeBtn.textContent = '複製成功! (legacy)';
+                    setTimeout(() => {
+                        copyCodeBtn.textContent = '複製程式碼';
+                    }, 2000);
+                }
+            });
+            
+            downloadCodeBtn.addEventListener('click', () => {
+                const data = appState.projectData;
+                const htmlContent = codeDisplay.value;
+                downloadFile(data.title, htmlContent);
+            });
+            
+            function goHome() {
+                resetEditor();
+                navigateTo('home');
+            }
+            
+            
+            // =======================================================
+            // ---            HTML 匯出邏輯 (核心)            ---
+            // =======================================================
+            
+            exportHtmlBtn.addEventListener('click', () => {
+                try {
+                    saveUIToData();
+                    const data = appState.projectData;
+                    const htmlContent = generateQuizHtml(data);
+                    
+                    codeDisplay.value = htmlContent;
+                    
+                    hideModal(exportModal);
+                    showModal(codeModal);
+                } catch (e) {
+                    // (新) V3 錯誤處理
+                    console.error('匯出時發生錯誤:', e);
+                    alert(`匯出失敗！\n錯誤訊息：${e.message}\n\n請檢查您的題目資料（例如多媒體網址或選項）是否完整。`);
+                }
+            });
+            
+            function downloadFile(filename, content) {
+                const element = document.createElement('a');
+                const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+                element.setAttribute('href', URL.createObjectURL(blob));
+                element.setAttribute('download', `${filename.replace(/[\/\\?%*:|"<>]/g, '-') || '測驗'}.html`);
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            }
+
+            /**
+             * (修改) V3：加入防呆，修復匯出 Bug
+             */
+            function generateQuizHtml(data) {
+                
+                // (修改) V3 確保 options 存在
+                const questionsWithObjectOptions = (data.questions || []).map(q => {
+                    const newQ = { ...q };
+                    // (修改) V3 確保 q.options 存在
+                    newQ.options = (q.options || []).map(opt => {
+                        if (typeof opt === 'string') {
+                            return { text: opt };
+                        }
+                        return opt;
+                    });
+                    return newQ;
+                });
+                const questionsJson = JSON.stringify(questionsWithObjectOptions, null, 2);
+                
+                // (修改) V3 確保 data.rules 存在
+                const rulesHtml = (data.rules || '')
+                    .split('\n')
+                    .map(line => line.trim() ? `<li>${escapeHtml(line)}</li>` : '')
+                    .join('\n');
+                
+                const timeEnabled = data.settings.timeLimit.enabled;
+                const timeDuration = data.settings.timeLimit.duration;
+                const timeDurationSeconds = timeDuration * 60;
+                
+                const antiCheatEnabled = data.settings.cheatDetect;
+
+                return `<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8" />
+    <title>${escapeHtml(data.title)}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+        /* 預設電腦版樣式 */
+        html, body {
+            margin: 0; padding: 0; height: 100%;
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f7f7f7;
+            overflow: hidden;
+            user-select: none;
+        }
+        header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background-color: #fff;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+        header h1 {
+            font-size: 20px;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .timer {
+            font-weight: bold;
+            color: #d9534f;
+            font-size: 18px;
+            min-width: 60px;
+            text-align: right;
+        }
+        .container {
+            position: absolute; top: 60px; left: 0; right: 0; bottom: 0;
+            display: flex; justify-content: center; align-items: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+        #rules {
+            max-width: 700px;
+            width: 100%;
+            text-align: left;
+            font-size: 18px;
+            line-height: 1.8;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #rules ul {
+            padding-left: 20px;
+        }
+        #start-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            width: 100%;
+            max-width: 300px;
+        }
+        .question-box {
+            background: white; padding: 30px 30px 80px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            position: relative;
+            font-size: 18px;
+            line-height: 1.5;
+            overflow-y: auto;
+            max-height: calc(100vh - 120px); /* 100vh - header - padding */
+        }
+        #question-text {
+            font-size: 1.25em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .media-container img, .media-container video {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .media-container audio {
+            width: 100%;
+            margin: 15px 0;
+        }
+        .answers label {
+            display: block;
+            margin: 12px 0;
+            padding: 12px 15px;
+            font-size: 18px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .answers label:hover {
+            background-color: #f1f1f1;
+        }
+        .answers input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+        .button-group {
+            position: absolute; /* 相對 .question-box 定位 */
+            bottom: 20px;
+            right: 30px;
+            display: flex;
+            gap: 10px;
+            z-index: 15;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            min-width: 120px;
+        }
+        .btn.hidden { display: none; }
+        .btn:disabled { background-color: #ccc; cursor: not-allowed; }
+        #finish-btn { background-color: #28a745; }
+        #result {
+            margin-top: 30px;
+            background-color: #e8f8e8;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 60vh;
+            overflow-y: auto;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+        .hidden { display: none; }
+
+        /* 手機響應式 */
+        @media (max-width: 768px) {
+            header {
+                padding: 0 15px;
+            }
+            header h1 {
+                font-size: 18px;
+                max-width: calc(100% - 80px); /* 避免標題太長 */
+            }
+            .timer {
+                font-size: 16px;
+            }
+            .container {
+                padding: 15px;
+            }
+            #rules {
+                font-size: 16px;
+                padding: 20px;
+            }
+            #start-btn {
+                font-size: 18px;
+                padding: 16px;
+                max-width: 100%;
+            }
+            .question-box {
+                font-size: 16px;
+                padding: 20px 20px 100px; /* 增加底部空間給按鈕 */
+                max-width: 100%;
+                max-height: calc(100vh - 90px); /* 100vh - header - padding */
+            }
+            .answers label {
+                font-size: 16px;
+                padding: 10px 12px;
+            }
+            .button-group {
+                bottom: 0;
+                right: 0;
+                left: 0;
+                gap: 8px;
+                padding: 10px;
+                justify-content: space-around;
+                position: fixed; /* 改為 fixed 才能固定在手機底部 */
+                background: rgba(255, 255, 255, 0.9);
+                border-top: 1px solid #ccc;
+            }
+            .btn {
+                max-width: none;
+                flex: 1 1 30%;
+                font-size: 16px;
+                padding: 14px 0;
+                min-width: auto;
+            }
+            #result {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body oncontextmenu="return ${antiCheatEnabled ? 'false' : 'true'}" onkeydown="return disableKeys(event)">
+    <header>
+        <h1>${escapeHtml(data.title)}</h1>
+        <div class="timer" id="timer">${timeEnabled ? formatTime(timeDurationSeconds) : '無限時'}</div>
+    </header>
+
+    <div class="container">
+        <div id="rules">
+            <h2>📜 考試規則</h2>
+            <ul>
+                ${rulesHtml || '<li>請遵守考試規則。</li>'}
+                ${timeEnabled ? `<li>考試總時間為 ${timeDuration} 分鐘，請留意右上角倒數。</li>` : '<li>本次考試時間不限。</li>'}
+                <li>共有 ${data.questions.length} 題。</li>
+                ${antiCheatEnabled ? '<li>考試期間禁止切換畫面或離開視窗，違者將自動交卷。</li>' : ''}
+            </ul>
+            <button id="start-btn">開始考試</button>
+        </div>
+
+        <div class="question-box hidden" id="exam-box">
+            <h2 id="question-text">載入中...</h2>
+            <div class="media-container" id="media-container"></div>
+            <div class="answers" id="answer-options"></div>
+            <div id="result" class="hidden"></div>
+        </div>
+    </div>
+    
+    <div class="button-group hidden" id="navigation-buttons">
+        <button id="prev-btn" class="btn">上一題</button>
+        <button id="next-btn" class="btn">下一題</button>
+        <button id="finish-btn" class="btn hidden">作答完畢，交卷</button>
+    </div>
+
+    <script>
+        // --- 注入的題目資料 ---
+        const questions = ${questionsJson};
+
+        // --- 注入的設定 ---
+        const TIME_LIMIT_ENABLED = ${timeEnabled};
+        const TOTAL_SECONDS = ${timeDurationSeconds};
+        const ANTI_CHEAT_ENABLED = ${antiCheatEnabled};
+
+        let current = 0;
+        const storageKey = "userAnswers_${escapeHtml(data.title)}";
+        const userAnswers = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        
+        // --- DOM 元素 ---
+        const questionText = document.getElementById("question-text");
+        const mediaContainer = document.getElementById("media-container");
+        const answerOptions = document.getElementById("answer-options");
+        const prevBtn = document.getElementById("prev-btn");
+        const nextBtn = document.getElementById("next-btn");
+        const finishBtn = document.getElementById("finish-btn");
+        const resultBox = document.getElementById("result");
+        const timerDisplay = document.getElementById("timer");
+        const rules = document.getElementById("rules");
+        const examBox = document.getElementById("exam-box");
+        const startBtn = document.getElementById("start-btn");
+        const navigationButtons = document.getElementById("navigation-buttons");
+
+        let remainingSeconds = TOTAL_SECONDS;
+        let interval;
+        let blurCount = 0;
+        let examFinished = false;
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, "0");
+            const s = (sec % 60).toString().padStart(2, "0");
+            return \`\${m}:\${s}\`;
+        }
+
+        function startTimer() {
+            if (!TIME_LIMIT_ENABLED) return; // 如果沒開計時
+            
+            interval = setInterval(() => {
+                remainingSeconds--;
+                timerDisplay.textContent = formatTime(remainingSeconds);
+                if (remainingSeconds <= 0) {
+                    clearInterval(interval);
+                    timerDisplay.textContent = "時間到！";
+                    showResults(true); // true = 強制交卷
+                }
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            if (examFinished) return;
+            
+            const q = questions[current];
+            if (!q) return;
+
+            // 題目文字
+            questionText.innerHTML = \`第 \${current + 1} 題 / ${questions.length} 題：<br>\${escapeHtml(q.text)}\`;
+
+            // 媒體
+            mediaContainer.innerHTML = "";
+            if (q.type === 'media' && q.media && q.media.src) {
+                let mediaHtml = "";
+                if (q.media.type === "image") {
+                    mediaHtml = \`<img src="\${q.media.src}" alt="question-media" />\`;
+                } else if (q.media.type === "audio") {
+                    mediaHtml = \`<audio controls><source src="\${q.media.src}">您的瀏覽器不支援音訊</audio>\`;
+                } else if (q.media.type === "video") {
+                    mediaHtml = \`<video controls><source src="\${q.media.src}">您的瀏覽器不支援影片</video>\`;
+                }
+                mediaContainer.innerHTML = mediaHtml;
+            }
+
+            // 選項
+            answerOptions.innerHTML = "";
+            (q.options || []).forEach((opt, i) => {
+                const checked = userAnswers[current] === i ? "checked" : "";
+                answerOptions.innerHTML += \`<label><input type="radio" name="answer" value="\${i}" \${checked}> \${escapeHtml(opt.text)}</label>\`;
+            });
+
+            // 按鈕狀態
+            prevBtn.disabled = current === 0;
+            nextBtn.classList.toggle("hidden", current === questions.length - 1);
+            finishBtn.classList.toggle("hidden", current !== questions.length - 1);
+            resultBox.classList.add("hidden");
+        }
+
+        function saveAnswer() {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if (selected) {
+                userAnswers[current] = parseInt(selected.value);
+            }
+            localStorage.setItem(storageKey, JSON.stringify(userAnswers));
+        }
+
+        function showResults(force = false) {
+            if (examFinished) return; // 防止重複交卷
+            
+            saveAnswer(); // 儲存最後一題的答案
+            
+            if (!force) {
+                const unanswered = questions.findIndex((_, i) => userAnswers[i] === undefined);
+                if (unanswered !== -1) {
+                    const confirmSubmit = confirm("⚠️ 尚有未作答的題目，是否確定要交卷？");
+                    if (!confirmSubmit) return;
+                } else {
+                    const confirmSubmit = confirm("是否確定交卷？");
+                    if (!confirmSubmit) return;
+                }
+            }
+            
+            examFinished = true;
+            clearInterval(interval);
+            navigationButtons.classList.add("hidden");
+            timerDisplay.textContent = "考試結束";
+            
+            let score = 0;
+            let output = "";
+            questions.forEach((q, i) => {
+                const userAns = userAnswers[i];
+                const correct = q.correct;
+                const isCorrect = userAns === correct;
+                if (isCorrect) score++;
+
+                output += \`<b>第 \${i + 1} 題：\${escapeHtml(q.text)}</b><br>\`;
+                
+                // (修改) V3 修復顯示答案時的 Bug
+                const userAnsText = (userAns !== undefined && q.options[userAns]) ? escapeHtml(q.options[userAns].text) : "未作答";
+                const correctAnsText = (correct !== null && q.options[correct]) ? escapeHtml(q.options[correct].text) : "無正確答案";
+
+                output += \`你的答案：<span style="color:\${isCorrect ? 'green' : 'red'}; font-weight: bold;">\${userAnsText}</span><br>\`;
+                if (!isCorrect) {
+                    output += \`正確答案：\${correctAnsText}<br>\`;
+                }
+                output += \`<hr style="border:0; border-top: 1px solid #eee; margin: 10px 0;">\`;
+            });
+            
+            resultBox.innerHTML = \`<h3>總分：\${score} / \${questions.length} 題</h3><br>\${output}\`;
+            resultBox.classList.remove("hidden");
+            
+            questionText.textContent = "考試結果";
+            mediaContainer.innerHTML = "";
+            answerOptions.innerHTML = "";
+            localStorage.removeItem(storageKey); // 清除作答紀錄
+            
+            window.removeEventListener("blur", handleBlur);
+        }
+
+        // --- 事件綁定 ---
+        prevBtn.onclick = () => {
+            saveAnswer();
+            if (current > 0) current--;
+            loadQuestion();
+        };
+
+        nextBtn.onclick = () => {
+            saveAnswer();
+            if (current < questions.length - 1) current++;
+            loadQuestion();
+        };
+
+        finishBtn.onclick = () => {
+            saveAnswer();
+            showResults();
+        };
+
+        startBtn.onclick = () => {
+            rules.classList.add("hidden");
+            examBox.classList.remove("hidden");
+            navigationButtons.classList.remove("hidden");
+            
+            loadQuestion();
+            startTimer();
+
+            if (ANTI_CHEAT_ENABLED) {
+                blurCount = 0;
+                window.addEventListener("blur", handleBlur);
+            }
+        };
+        
+        // --- 防作弊功能 ---
+        function handleBlur() {
+            if (examFinished) return;
+            
+            blurCount++;
+            if (blurCount === 1) {
+                showNotice("⚠️ 警告！偵測到你切換視窗，再切一次將自動交卷！", 5000);
+            } else if (blurCount === 2) {
+                showNotice("❌ 第二次切換視窗，系統自動交卷。", 10000);
+                showResults(true); // 強制交卷
+            }
+        }
+
+        function showNotice(msg, duration = 3000) {
+            const box = document.createElement("div");
+            box.textContent = msg;
+            box.style.cssText = \`
+                position: fixed;
+                top: 70px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 10px 20px;
+                background: #fff3cd;
+                border: 1px solid #ffeeba;
+                color: #856404;
+                z-index: 9999;
+                border-radius: 8px;
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            \`;
+            document.body.appendChild(box);
+            setTimeout(() => box.remove(), duration);
+        }
+
+        function disableKeys(e) {
+            if (!ANTI_CHEAT_ENABLED) return true;
+            
+            if (e.key === "F12" ||
+                (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "i") ||
+                (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "j") ||
+                (e.ctrlKey && e.key.toLowerCase() === "u") ||
+                (e.ctrlKey && e.key.toLowerCase() === "c")) {
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        }
+        
+        // --- 工具函式 ---
+        function escapeHtml(unsafe) {
+            if (unsafe === null || unsafe === undefined) return '';
+            return unsafe.toString()
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+        
+        // (用於 header 的計時器顯示)
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60).toString().padStart(2, "0");
+            const s = (sec % 60).toString().padStart(2, "0");
+            return \`\${m}:\${s}\`;
+        }
+    <\/script>
+</body>
+</html>`;
+            }
+            
+            function escapeHtml(unsafe) {
+                if (unsafe === null || unsafe === undefined) return '';
+                return unsafe.toString()
+                     .replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+            }
+            
+            // 立即執行，初始化頁面
+            navigateTo('home');
+        });
+    </script>
+</body>
+</html>
