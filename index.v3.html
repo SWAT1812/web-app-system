@@ -240,7 +240,7 @@
             font-weight: 600;
         }
 
-        /* (新) V3 排序按鈕樣式 */
+        /* V3 排序按鈕樣式 */
         .question-list-controls {
             display: flex;
             flex-direction: column;
@@ -525,7 +525,6 @@
             opacity: 1;
         }
         
-        /* (新) V3 程式碼框架的樣式調整 */
         #code-display {
             width: 100%;
             height: 40vh;
@@ -567,7 +566,6 @@
             .main-content {
                 padding: 15px;
                 flex-grow: 1;
-                /* 確保在手機上可以滾動 */
             }
             
             .editor-header {
@@ -779,23 +777,20 @@
         document.addEventListener('DOMContentLoaded', () => {
 
             // --- 狀態管理 ---
-            const DB_KEY = 'pwaQuizAppProjects'; // localStorage 的 key
+            const DB_KEY = 'pwaQuizAppProjects';
             let appState = {
-                currentPage: 'home', // 'home' or 'editor'
-                currentProjectName: null, // 當前開啟的專案名稱
-                currentEditingQuestionId: null, // 正在編輯的題目 ID
-                isDirty: false, // 檔案是否被修改過
+                currentPage: 'home',
+                currentProjectName: null,
+                currentEditingQuestionId: null,
+                isDirty: false,
                 projectData: {
                     title: '新測驗',
                     rules: '',
                     settings: {
                         cheatDetect: false,
-                        timeLimit: {
-                            enabled: false,
-                            duration: 30 // in minutes
-                        }
+                        timeLimit: { enabled: false, duration: 30 }
                     },
-                    questions: [] // { id, type: 'text'/'media', text, media: {type, src}, options: [], correct: 0 }
+                    questions: []
                 }
             };
 
@@ -848,7 +843,6 @@
             const exportHtmlBtn = document.getElementById('export-html-btn');
             const closeExportBtn = document.getElementById('close-export-btn');
 
-            // (新) 程式碼 Modal 元素
             const codeModal = document.getElementById('code-modal');
             const codeDisplay = document.getElementById('code-display');
             const copyCodeBtn = document.getElementById('copy-code-btn');
@@ -884,7 +878,6 @@
                 editorTitle.textContent = title;
             };
 
-            // 監聽所有輸入
             document.querySelectorAll('#editor-page input, #editor-page textarea, #editor-page select').forEach(el => {
                 el.addEventListener('input', markAsDirty);
                 el.addEventListener('change', markAsDirty);
@@ -913,16 +906,16 @@
                 const projects = getProjects();
                 projects[name] = data;
                 localStorage.setItem(DB_KEY, JSON.stringify(projects));
-                appState.currentProjectName = name; // 更新當前專案名稱
-                appState.projectData.title = name; // 同步標題
-                markAsClean(); // 儲存後標記為乾淨
+                appState.currentProjectName = name;
+                appState.projectData.title = name;
+                markAsClean();
             };
             
             const deleteProject = (name) => {
                 const projects = getProjects();
                 delete projects[name];
                 localStorage.setItem(DB_KEY, JSON.stringify(projects));
-                populateFileList(); // 刪除後重新整理列表
+                populateFileList();
             };
             
             const projectExists = (name) => {
@@ -959,7 +952,7 @@
                 } else {
                     noFilesMessage.style.display = 'none';
                     fileList.style.display = 'block';
-                    confirmOpenBtn.disabled = true; // 預設禁用
+                    confirmOpenBtn.disabled = true;
                     
                     projectNames.forEach(name => {
                         const item = document.createElement('div');
@@ -974,7 +967,7 @@
                         deleteBtn.innerHTML = '&times;';
                         
                         deleteBtn.addEventListener('click', (e) => {
-                            e.stopPropagation(); // 防止觸發選取
+                            e.stopPropagation();
                             if (confirm(`您確定要刪除檔案「${name}」嗎？此操作無法復原。`)) {
                                 deleteProject(name);
                             }
@@ -984,9 +977,7 @@
                         item.appendChild(deleteBtn);
                         
                         item.addEventListener('click', () => {
-                            // 移除其他選取
                             fileList.querySelectorAll('.file-item').forEach(el => el.classList.remove('selected'));
-                            // 新增選取
                             item.classList.add('selected');
                             selectedFileToOpen = name;
                             confirmOpenBtn.disabled = false;
@@ -1014,7 +1005,6 @@
 
             // --- 編輯器邏輯 ---
             
-            // 重設編輯器狀態
             function resetEditor() {
                 appState.currentProjectName = null;
                 appState.currentEditingQuestionId = null;
@@ -1027,48 +1017,38 @@
                     },
                     questions: []
                 };
-                markAsClean(); // 重設為乾淨
+                markAsClean();
                 loadEditorUI();
             }
             
-            // 載入專案資料到 UI
             function loadProject(name, data) {
                 appState.currentProjectName = name;
-                appState.projectData = data; // 載入資料
-                appState.projectData.title = name; // 名稱就是標題
-                appState.currentEditingQuestionId = null; // 預設不選取任何題目
-                markAsClean(); // 剛載入時是乾淨的
+                appState.projectData = data;
+                appState.projectData.title = name;
+                appState.currentEditingQuestionId = null;
+                markAsClean();
                 loadEditorUI();
             }
 
-            // 根據 appState.projectData 更新整個編輯器 UI
             function loadEditorUI() {
-                // 1. 更新標題
                 updateEditorTitle();
-                fileNameInput.value = appState.projectData.title; // 同步檔名輸入框
+                fileNameInput.value = appState.projectData.title;
                 
-                // 2. 更新設定
                 examRulesInput.value = appState.projectData.rules;
                 const settings = appState.projectData.settings;
                 cheatDetectToggle.checked = settings.cheatDetect;
                 timeLimitToggle.checked = settings.timeLimit.enabled;
                 timeLimitInput.value = settings.timeLimit.duration;
-                // 觸發一次 timeLimitToggle 的 change 事件來更新 UI
                 timeLimitToggle.dispatchEvent(new Event('change'));
                 
-                // 3. 渲染題目列表
                 renderQuestionList();
                 
-                // 4. 渲染題目編輯區 (預設不選)
                 showQuestionEditor(null);
             }
             
-            // 儲存 UI 上的資料回 appState.projectData (在儲存前呼叫)
             function saveUIToData() {
-                // 1. 先儲存正在編輯的題目 (如果有的話)
                 saveCurrentQuestion();
                 
-                // 2. 儲存全域設定
                 appState.projectData.rules = examRulesInput.value;
                 appState.projectData.settings.cheatDetect = cheatDetectToggle.checked;
                 appState.projectData.settings.timeLimit.enabled = timeLimitToggle.checked;
@@ -1085,30 +1065,28 @@
             // --- 編輯器 - 題目列表 ---
             
             /**
-             * (新) V3 函式：移動題目順序
+             * V3 函式：移動題目順序
              */
             function moveQuestion(id, direction) {
                 const questions = appState.projectData.questions;
                 const index = questions.findIndex(q => q.id === id);
 
                 if (direction === 'up' && index > 0) {
-                    // 向上交換
                     [questions[index], questions[index - 1]] = [questions[index - 1], questions[index]];
                 } else if (direction === 'down' && index < questions.length - 1) {
-                    // 向下交換
                     [questions[index], questions[index + 1]] = [questions[index + 1], questions[index]];
                 }
 
                 markAsDirty();
-                renderQuestionList(); // 重新渲染列表
+                renderQuestionList();
             }
             
             /**
-             * (修改) V3：加入排序按鈕
+             * V3：加入排序按鈕
              */
             function renderQuestionList() {
                 questionList.innerHTML = '';
-                const questions = appState.projectData.questions; // 取得題目陣列
+                const questions = appState.projectData.questions;
                 
                 questions.forEach((q, index) => {
                     const item = document.createElement('div');
@@ -1118,14 +1096,13 @@
                         item.classList.add('active');
                     }
                     
-                    // (新) V3 排序按鈕
                     const controls = document.createElement('div');
                     controls.className = 'question-list-controls';
                     
                     const upBtn = document.createElement('button');
                     upBtn.className = 'move-q-btn move-up-btn';
-                    upBtn.innerHTML = '&uarr;'; // 上箭頭
-                    if (index === 0) upBtn.classList.add('hidden'); // 第一個隱藏
+                    upBtn.innerHTML = '&uarr;';
+                    if (index === 0) upBtn.classList.add('hidden');
                     upBtn.onclick = (e) => {
                         e.stopPropagation();
                         moveQuestion(q.id, 'up');
@@ -1133,8 +1110,8 @@
 
                     const downBtn = document.createElement('button');
                     downBtn.className = 'move-q-btn move-down-btn';
-                    downBtn.innerHTML = '&darr;'; // 下箭頭
-                    if (index === questions.length - 1) downBtn.classList.add('hidden'); // 最後一個隱藏
+                    downBtn.innerHTML = '&darr;';
+                    if (index === questions.length - 1) downBtn.classList.add('hidden');
                     downBtn.onclick = (e) => {
                         e.stopPropagation();
                         moveQuestion(q.id, 'down');
@@ -1142,15 +1119,13 @@
 
                     controls.appendChild(upBtn);
                     controls.appendChild(downBtn);
-                    item.appendChild(controls); // 先加入排序按鈕
+                    item.appendChild(controls);
                     
-                    // (舊) 題目文字
                     const text = document.createElement('span');
                     text.className = 'question-list-item-text';
-                    text.textContent = `(${index + 1}) ${q.text || '未命名題目'}`; // 顯示 (1), (2)...
+                    text.textContent = `(${index + 1}) ${q.text || '未命名題目'}`;
                     item.appendChild(text);
                     
-                    // (舊) 刪除按鈕
                     const deleteBtn = document.createElement('button');
                     deleteBtn.className = 'delete-question-btn';
                     deleteBtn.innerHTML = '&times;';
@@ -1162,7 +1137,6 @@
                     };
                     item.appendChild(deleteBtn);
                     
-                    // (舊) 點擊事件
                     item.addEventListener('click', () => {
                         selectQuestion(q.id);
                     });
@@ -1172,34 +1146,27 @@
             }
             
             function addQuestion(type) {
-                // 1. 先儲存目前編輯中的題目
                 saveCurrentQuestion();
                 
-                // 2. 建立新題目
                 const newId = Date.now().toString();
                 const newQuestion = {
                     id: newId,
                     type: type,
                     text: '',
                     media: { type: 'image', src: '' },
-                    options: [], // 確保 options 是空陣列
-                    correct: null // 預設沒有答案
+                    options: [],
+                    correct: null
                 };
                 
-                // 3. 新增 2 個預設選項
                 newQuestion.options.push({ text: '選項 A' });
                 newQuestion.options.push({ text: '選項 B' });
 
-                // 4. 加入資料
                 appState.projectData.questions.push(newQuestion);
                 
-                // 5. 重新渲染列表
                 renderQuestionList();
                 
-                // 6. 自動選取新題目
                 selectQuestion(newId);
                 
-                // 7. 標記為已修改
                 markAsDirty();
             }
             
@@ -1209,7 +1176,6 @@
             function deleteQuestion(id) {
                 appState.projectData.questions = appState.projectData.questions.filter(q => q.id !== id);
                 
-                // 如果刪除的是正在編輯的題目，就關閉編輯器
                 if (appState.currentEditingQuestionId === id) {
                     showQuestionEditor(null);
                 }
@@ -1228,7 +1194,6 @@
                 const optionItems = optionsContainer.querySelectorAll('.option-item');
                 
                 optionItems.forEach((item, index) => {
-                    // 確保 state 和 UI 上的選項數量一致
                     if (question.options[index]) {
                         const text = item.querySelector('input[type="text"]').value;
                         question.options[index].text = text;
@@ -1237,42 +1202,33 @@
             }
             
             function selectQuestion(id) {
-                // 1. 先儲存上一個編輯的題目
                 saveCurrentQuestion();
                 
-                // 2. 設定新的 ID
                 appState.currentEditingQuestionId = id;
                 
-                // 3. 載入新題目的資料
                 const question = appState.projectData.questions.find(q => q.id === id);
                 showQuestionEditor(question);
                 
-                // 4. 更新列表中的 'active' 狀態
                 renderQuestionList();
             }
             
-            // 儲存當前編輯器中的資料 到 appState.projectData
             function saveCurrentQuestion() {
                 const currentId = appState.currentEditingQuestionId;
-                if (!currentId) return; // 沒有選取題目，不用存
+                if (!currentId) return;
 
                 const question = appState.projectData.questions.find(q => q.id === currentId);
-                if (!question) return; // 找不到題目 (可能剛被刪除)
+                if (!question) return;
                 
-                // V2: 儲存前，先同步一次 UI 上的選項文字
                 syncOptionsFromUI(question);
                 
-                // 儲存文字
                 question.text = questionTextInput.value;
                 
-                // 儲存多媒體
                 if (question.type === 'media') {
                     question.media.type = mediaTypeSelect.value;
                     question.media.src = mediaUrlInput.value;
                 }
             }
 
-            // 根據傳入的 question 物件顯示編輯器
             function showQuestionEditor(question) {
                 if (!question) {
                     appState.currentEditingQuestionId = null;
@@ -1284,11 +1240,9 @@
                 noQuestionSelected.classList.add('hidden');
                 questionEditor.classList.remove('hidden');
                 
-                // 載入資料
                 questionTypeInput.value = question.type;
                 questionTextInput.value = question.text;
                 
-                // 媒體
                 if (question.type === 'media') {
                     mediaInputGroup.style.display = 'block';
                     mediaTypeSelect.value = question.media.type;
@@ -1297,13 +1251,11 @@
                     mediaInputGroup.style.display = 'none';
                 }
                 
-                // 選項
                 renderOptions(question);
             }
             
             function renderOptions(question) {
                 optionsContainer.innerHTML = '';
-                // 確保 question.options 是一個陣列
                 (question.options || []).forEach((opt, index) => {
                     addOptionUI(opt.text, index, question.correct === index);
                 });
@@ -1312,11 +1264,11 @@
             function addOptionUI(text, index, isCorrect) {
                 const item = document.createElement('div');
                 item.className = 'option-item';
-                item.dataset.index = index; // 儲存索引
+                item.dataset.index = index;
                 
                 const setAnswerBtn = document.createElement('button');
                 setAnswerBtn.className = 'set-answer-btn';
-                setAnswerBtn.innerHTML = '&#10004;'; // check mark
+                setAnswerBtn.innerHTML = '&#10004;';
                 if (isCorrect) {
                     setAnswerBtn.classList.add('correct-answer');
                 }
@@ -1341,17 +1293,14 @@
                 deleteBtn.addEventListener('click', () => {
                     const q = appState.projectData.questions.find(q => q.id === appState.currentEditingQuestionId);
                     if (q) {
-                        // V2: 動作前先同步
                         syncOptionsFromUI(q);
-
                         q.options.splice(index, 1);
-                        // 如果刪除的是正確答案，重設答案
                         if (q.correct === index) {
                             q.correct = null;
                         } else if (q.correct > index) {
-                            q.correct -= 1; // 答案索引往前移
+                            q.correct -= 1;
                         }
-                        renderOptions(q); // 重新渲染
+                        renderOptions(q);
                         markAsDirty();
                     }
                 });
@@ -1359,11 +1308,9 @@
                 setAnswerBtn.addEventListener('click', () => {
                     const q = appState.projectData.questions.find(q => q.id === appState.currentEditingQuestionId);
                     if (q) {
-                        // V2: 動作前先同步
                         syncOptionsFromUI(q);
-                        
-                        q.correct = index; // 設定答案
-                        renderOptions(q); // 重新渲染以更新 UI
+                        q.correct = index;
+                        renderOptions(q);
                         markAsDirty();
                     }
                 });
@@ -1372,11 +1319,9 @@
             addOptionBtn.addEventListener('click', () => {
                 const q = appState.projectData.questions.find(q => q.id === appState.currentEditingQuestionId);
                 if (q) {
-                    // V2: 動作前先同步
                     syncOptionsFromUI(q);
-                    
                     q.options.push({ text: '' });
-                    renderOptions(q); // 重新渲染
+                    renderOptions(q);
                     markAsDirty();
                 }
             });
@@ -1472,14 +1417,12 @@
             copyCodeBtn.addEventListener('click', () => {
                 codeDisplay.select();
                 try {
-                    // 使用 navigator.clipboard (更現代)
                     navigator.clipboard.writeText(codeDisplay.value).then(() => {
                         copyCodeBtn.textContent = '複製成功!';
                         setTimeout(() => {
                             copyCodeBtn.textContent = '複製程式碼';
                         }, 2000);
                     }, () => {
-                        // 降級處理 (如果 clipboard 失敗)
                         document.execCommand('copy');
                         copyCodeBtn.textContent = '複製成功! (fallback)';
                         setTimeout(() => {
@@ -1487,7 +1430,6 @@
                         }, 2000);
                     });
                 } catch (err) {
-                    // 舊版瀏覽器降級
                     document.execCommand('copy');
                     copyCodeBtn.textContent = '複製成功! (legacy)';
                     setTimeout(() => {
@@ -1523,7 +1465,6 @@
                     hideModal(exportModal);
                     showModal(codeModal);
                 } catch (e) {
-                    // (新) V3 錯誤處理
                     console.error('匯出時發生錯誤:', e);
                     alert(`匯出失敗！\n錯誤訊息：${e.message}\n\n請檢查您的題目資料（例如多媒體網址或選項）是否完整。`);
                 }
@@ -1541,14 +1482,12 @@
             }
 
             /**
-             * (修改) V3：加入防呆，修復匯出 Bug
+             * V3：加入防呆，修復匯出 Bug
              */
             function generateQuizHtml(data) {
                 
-                // (修改) V3 確保 options 存在
                 const questionsWithObjectOptions = (data.questions || []).map(q => {
                     const newQ = { ...q };
-                    // (修改) V3 確保 q.options 存在
                     newQ.options = (q.options || []).map(opt => {
                         if (typeof opt === 'string') {
                             return { text: opt };
@@ -1559,7 +1498,6 @@
                 });
                 const questionsJson = JSON.stringify(questionsWithObjectOptions, null, 2);
                 
-                // (修改) V3 確保 data.rules 存在
                 const rulesHtml = (data.rules || '')
                     .split('\n')
                     .map(line => line.trim() ? `<li>${escapeHtml(line)}</li>` : '')
@@ -1571,6 +1509,9 @@
                 
                 const antiCheatEnabled = data.settings.cheatDetect;
 
+                // (重要!) V4 錯誤修正：
+                // generateQuizHtml 函式在 *建立字串時* 就會呼叫 formatTime
+                // 所以主腳本 (這裡) 也必須有 formatTime 函式
                 return `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -1657,7 +1598,7 @@
             font-size: 18px;
             line-height: 1.5;
             overflow-y: auto;
-            max-height: calc(100vh - 120px); /* 100vh - header - padding */
+            max-height: calc(100vh - 120px);
         }
         #question-text {
             font-size: 1.25em;
@@ -1692,7 +1633,7 @@
             transform: scale(1.2);
         }
         .button-group {
-            position: absolute; /* 相對 .question-box 定位 */
+            position: absolute;
             bottom: 20px;
             right: 30px;
             display: flex;
@@ -1731,7 +1672,7 @@
             }
             header h1 {
                 font-size: 18px;
-                max-width: calc(100% - 80px); /* 避免標題太長 */
+                max-width: calc(100% - 80px);
             }
             .timer {
                 font-size: 16px;
@@ -1750,9 +1691,9 @@
             }
             .question-box {
                 font-size: 16px;
-                padding: 20px 20px 100px; /* 增加底部空間給按鈕 */
+                padding: 20px 20px 100px;
                 max-width: 100%;
-                max-height: calc(100vh - 90px); /* 100vh - header - padding */
+                max-height: calc(100vh - 90px);
             }
             .answers label {
                 font-size: 16px;
@@ -1765,7 +1706,7 @@
                 gap: 8px;
                 padding: 10px;
                 justify-content: space-around;
-                position: fixed; /* 改為 fixed 才能固定在手機底部 */
+                position: fixed;
                 background: rgba(255, 255, 255, 0.9);
                 border-top: 1px solid #ccc;
             }
@@ -1846,6 +1787,7 @@
         let blurCount = 0;
         let examFinished = false;
 
+        // (匯出檔案的) formatTime
         function formatTime(sec) {
             const m = Math.floor(sec / 60).toString().padStart(2, "0");
             const s = (sec % 60).toString().padStart(2, "0");
@@ -1853,7 +1795,7 @@
         }
 
         function startTimer() {
-            if (!TIME_LIMIT_ENABLED) return; // 如果沒開計時
+            if (!TIME_LIMIT_ENABLED) return;
             
             interval = setInterval(() => {
                 remainingSeconds--;
@@ -1861,7 +1803,7 @@
                 if (remainingSeconds <= 0) {
                     clearInterval(interval);
                     timerDisplay.textContent = "時間到！";
-                    showResults(true); // true = 強制交卷
+                    showResults(true);
                 }
             }, 1000);
         }
@@ -1872,10 +1814,8 @@
             const q = questions[current];
             if (!q) return;
 
-            // 題目文字
             questionText.innerHTML = \`第 \${current + 1} 題 / ${questions.length} 題：<br>\${escapeHtml(q.text)}\`;
 
-            // 媒體
             mediaContainer.innerHTML = "";
             if (q.type === 'media' && q.media && q.media.src) {
                 let mediaHtml = "";
@@ -1889,14 +1829,12 @@
                 mediaContainer.innerHTML = mediaHtml;
             }
 
-            // 選項
             answerOptions.innerHTML = "";
             (q.options || []).forEach((opt, i) => {
                 const checked = userAnswers[current] === i ? "checked" : "";
                 answerOptions.innerHTML += \`<label><input type="radio" name="answer" value="\${i}" \${checked}> \${escapeHtml(opt.text)}</label>\`;
             });
 
-            // 按鈕狀態
             prevBtn.disabled = current === 0;
             nextBtn.classList.toggle("hidden", current === questions.length - 1);
             finishBtn.classList.toggle("hidden", current !== questions.length - 1);
@@ -1912,9 +1850,9 @@
         }
 
         function showResults(force = false) {
-            if (examFinished) return; // 防止重複交卷
+            if (examFinished) return;
             
-            saveAnswer(); // 儲存最後一題的答案
+            saveAnswer();
             
             if (!force) {
                 const unanswered = questions.findIndex((_, i) => userAnswers[i] === undefined);
@@ -1942,7 +1880,6 @@
 
                 output += \`<b>第 \${i + 1} 題：\${escapeHtml(q.text)}</b><br>\`;
                 
-                // (修改) V3 修復顯示答案時的 Bug
                 const userAnsText = (userAns !== undefined && q.options[userAns]) ? escapeHtml(q.options[userAns].text) : "未作答";
                 const correctAnsText = (correct !== null && q.options[correct]) ? escapeHtml(q.options[correct].text) : "無正確答案";
 
@@ -1959,7 +1896,7 @@
             questionText.textContent = "考試結果";
             mediaContainer.innerHTML = "";
             answerOptions.innerHTML = "";
-            localStorage.removeItem(storageKey); // 清除作答紀錄
+            localStorage.removeItem(storageKey);
             
             window.removeEventListener("blur", handleBlur);
         }
@@ -2005,7 +1942,7 @@
                 showNotice("⚠️ 警告！偵測到你切換視窗，再切一次將自動交卷！", 5000);
             } else if (blurCount === 2) {
                 showNotice("❌ 第二次切換視窗，系統自動交卷。", 10000);
-                showResults(true); // 強制交卷
+                showResults(true);
             }
         }
 
@@ -2054,12 +1991,6 @@
                  .replace(/'/g, "&#039;");
         }
         
-        // (用於 header 的計時器顯示)
-        function formatTime(sec) {
-            const m = Math.floor(sec / 60).toString().padStart(2, "0");
-            const s = (sec % 60).toString().padStart(2, "0");
-            return \`\${m}:\${s}\`;
-        }
     <\/script>
 </body>
 </html>`;
@@ -2074,6 +2005,16 @@
                      .replace(/"/g, "&quot;")
                      .replace(/'/g, "&#039;");
             }
+            
+            // =======================================================
+            // (新) V4 修正：在主腳本中定義 formatTime
+            // =======================================================
+            function formatTime(sec) {
+                const m = Math.floor(sec / 60).toString().padStart(2, "0");
+                const s = (sec % 60).toString().padStart(2, "0");
+                return `${m}:${s}`;
+            }
+
             
             // 立即執行，初始化頁面
             navigateTo('home');
