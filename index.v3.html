@@ -1188,8 +1188,10 @@
 
             /**
              * V2 功能：將目前 UI 上的選項文字 同步回 appState
+             * (V5 修正)
              */
-            function syncOptionsFromUI(question) {
+            function syncOptionsFromUI(question) { // 這裡傳入的是 'question' (單數)
+                // (V5 修正) 確保傳入的是 'question' (單數)，而不是 'questions' (複數)
                 if (!question || !question.options) return;
                 const optionItems = optionsContainer.querySelectorAll('.option-item');
                 
@@ -1219,7 +1221,7 @@
                 const question = appState.projectData.questions.find(q => q.id === currentId);
                 if (!question) return;
                 
-                syncOptionsFromUI(question);
+                syncOptionsFromUI(question); // 傳入 'question' (單數)
                 
                 question.text = questionTextInput.value;
                 
@@ -1449,7 +1451,26 @@
                 navigateTo('home');
             }
             
+            // =======================================================
+            // ---           (V4/V5) 輔助函式 (置頂)          ---
+            // =======================================================
             
+            function escapeHtml(unsafe) {
+                if (unsafe === null || unsafe === undefined) return '';
+                return unsafe.toString()
+                     .replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+            }
+            
+            function formatTime(sec) {
+                const m = Math.floor(sec / 60).toString().padStart(2, "0");
+                const s = (sec % 60).toString().padStart(2, "0");
+                return `${m}:${s}`;
+            }
+
             // =======================================================
             // ---            HTML 匯出邏輯 (核心)            ---
             // =======================================================
@@ -1482,7 +1503,7 @@
             }
 
             /**
-             * V3：加入防呆，修復匯出 Bug
+             * (V3)
              */
             function generateQuizHtml(data) {
                 
@@ -1509,9 +1530,7 @@
                 
                 const antiCheatEnabled = data.settings.cheatDetect;
 
-                // (重要!) V4 錯誤修正：
-                // generateQuizHtml 函式在 *建立字串時* 就會呼叫 formatTime
-                // 所以主腳本 (這裡) 也必須有 formatTime 函式
+                // (V4) 這裡會呼叫 主程式的 formatTime()
                 return `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -1990,35 +2009,15 @@
                  .replace(/"/g, "&quot;")
                  .replace(/'/g, "&#039;");
         }
-        
     <\/script>
 </body>
 </html>`;
             }
-            
-            function escapeHtml(unsafe) {
-                if (unsafe === null || unsafe === undefined) return '';
-                return unsafe.toString()
-                     .replace(/&/g, "&amp;")
-                     .replace(/</g, "&lt;")
-                     .replace(/>/g, "&gt;")
-                     .replace(/"/g, "&quot;")
-                     .replace(/'/g, "&#039;");
-            }
-            
-            // =======================================================
-            // (新) V4 修正：在主腳本中定義 formatTime
-            // =======================================================
-            function formatTime(sec) {
-                const m = Math.floor(sec / 60).toString().padStart(2, "0");
-                const s = (sec % 60).toString().padStart(2, "0");
-                return `${m}:${s}`;
-            }
 
-            
             // 立即執行，初始化頁面
             navigateTo('home');
         });
     </script>
 </body>
 </html>
+
