@@ -351,14 +351,7 @@
             flex-grow: 1;
         }
         
-        .options-container .delete-option-btn {
-            background: none;
-            border: none;
-            color: #dc3545;
-            padding: 5px;
-            font-size: 1.2rem;
-        }
-        
+        /* (新) V6 按鈕樣式 */
         .set-answer-btn {
             background: #28a745;
             width: 40px;
@@ -366,6 +359,7 @@
             padding: 0;
             font-size: 1.2rem;
             flex-shrink: 0;
+            border-radius: 8px;
         }
         
         .set-answer-btn.correct-answer {
@@ -373,7 +367,23 @@
             border: 2px solid #fff;
             box-shadow: 0 0 5px #28a745;
         }
-
+        
+        .options-container .delete-option-btn {
+            background-color: #dc3545;
+            color: white;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+        .options-container .delete-option-btn:hover {
+             background-color: #c82333;
+        }
+        
         /* --- 進階設定 --- */
         .switch-group {
             display: flex;
@@ -1187,11 +1197,9 @@
             // --- 編輯器 - 題目編輯區 ---
 
             /**
-             * V2 功能：將目前 UI 上的選項文字 同步回 appState
-             * (V5 修正)
+             * V5 修正
              */
-            function syncOptionsFromUI(question) { // 這裡傳入的是 'question' (單數)
-                // (V5 修正) 確保傳入的是 'question' (單數)，而不是 'questions' (複數)
+            function syncOptionsFromUI(question) { 
                 if (!question || !question.options) return;
                 const optionItems = optionsContainer.querySelectorAll('.option-item');
                 
@@ -1221,7 +1229,7 @@
                 const question = appState.projectData.questions.find(q => q.id === currentId);
                 if (!question) return;
                 
-                syncOptionsFromUI(question); // 傳入 'question' (單數)
+                syncOptionsFromUI(question);
                 
                 question.text = questionTextInput.value;
                 
@@ -1263,6 +1271,9 @@
                 });
             }
             
+            /**
+             * (新) V6 修改排版
+             */
             function addOptionUI(text, index, isCorrect) {
                 const item = document.createElement('div');
                 item.className = 'option-item';
@@ -1284,8 +1295,9 @@
                 deleteBtn.className = 'delete-option-btn';
                 deleteBtn.innerHTML = '&times;';
                 
-                item.appendChild(setAnswerBtn);
+                // (新) V6 排版： Input, AnswerBtn, DeleteBtn
                 item.appendChild(textInput);
+                item.appendChild(setAnswerBtn);
                 item.appendChild(deleteBtn);
                 optionsContainer.appendChild(item);
                 
@@ -1451,8 +1463,9 @@
                 navigateTo('home');
             }
             
+            
             // =======================================================
-            // ---           (V4/V5) 輔助函式 (置頂)          ---
+            // ---            (新) V6 輔助函式 (Helpers)        ---
             // =======================================================
             
             function escapeHtml(unsafe) {
@@ -1465,6 +1478,9 @@
                      .replace(/'/g, "&#039;");
             }
             
+            /**
+             * (新) V6 修正：將 V4 遺失的 formatTime 加回來
+             */
             function formatTime(sec) {
                 const m = Math.floor(sec / 60).toString().padStart(2, "0");
                 const s = (sec % 60).toString().padStart(2, "0");
@@ -1479,7 +1495,8 @@
                 try {
                     saveUIToData();
                     const data = appState.projectData;
-                    const htmlContent = generateQuizHtml(data);
+                    // generateQuizHtml 現在可以正確找到 formatTime
+                    const htmlContent = generateQuizHtml(data); 
                     
                     codeDisplay.value = htmlContent;
                     
@@ -1502,9 +1519,6 @@
                 document.body.removeChild(element);
             }
 
-            /**
-             * (V3)
-             */
             function generateQuizHtml(data) {
                 
                 const questionsWithObjectOptions = (data.questions || []).map(q => {
@@ -1530,7 +1544,6 @@
                 
                 const antiCheatEnabled = data.settings.cheatDetect;
 
-                // (V4) 這裡會呼叫 主程式的 formatTime()
                 return `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -2000,6 +2013,7 @@
         }
         
         // --- 工具函式 ---
+        // (此為匯出檔案用的 escapeHtml，與主程式的 escapeHtml 相同)
         function escapeHtml(unsafe) {
             if (unsafe === null || unsafe === undefined) return '';
             return unsafe.toString()
@@ -2013,11 +2027,10 @@
 </body>
 </html>`;
             }
-
+            
             // 立即執行，初始化頁面
             navigateTo('home');
         });
     </script>
 </body>
 </html>
-
