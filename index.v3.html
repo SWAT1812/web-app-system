@@ -351,7 +351,7 @@
             flex-grow: 1;
         }
         
-        /* (新) V6 按鈕樣式 */
+        /* (新) V7 按鈕樣式 */
         .set-answer-btn {
             background: #28a745;
             width: 40px;
@@ -793,7 +793,7 @@
                 currentProjectName: null,
                 currentEditingQuestionId: null,
                 isDirty: false,
-                projectData: {
+                projectData: { // 這是 'project'
                     title: '新測驗',
                     rules: '',
                     settings: {
@@ -803,7 +803,7 @@
                     questions: []
                 }
             };
-
+            
             // --- 頁面元素 ---
             const pages = {
                 home: document.getElementById('home-page'),
@@ -902,23 +902,83 @@
                 }
             }
 
-            // --- 資料庫 (LocalStorage) 操作 ---
+            // =======================================================
+            // --- (新) V7 輔助函式 (Helpers) ---
+            // =======================================================
+            
+            function escapeHtml(unsafe) {
+                if (unsafe === null || unsafe === undefined) return '';
+                return unsafe.toString()
+                     .replace(/&/g, "&amp;")
+                     .replace(/</g, "&lt;")
+                     .replace(/>/g, "&gt;")
+                     .replace(/"/g, "&quot;")
+                     .replace(/'/g, "&#039;");
+            }
+            
+            /**
+             * (新) V7 修正：將 V6 遺失的 formatTime 加回來
+             */
+            function formatTime(sec) {
+                const m = Math.floor(sec / 60).toString().padStart(2, "0");
+                const s = (sec % 60).toString().padStart(2, "0");
+                return `${m}:${s}`;
+            }
+
+            // =======================================================
+            // --- (新) V7 資料庫 (LocalStorage) 操作 (含排序) ---
+            // =======================================================
+
+            /**
+             * 讀取所有專案 (維持 V6 格式)
+             * { "projName": { metadata: {...}, project: {...} }, ... }
+             */
             const getProjects = () => {
                 const data = localStorage.getItem(DB_KEY);
                 return data ? JSON.parse(data) : {};
             };
 
-            const getProject = (name) => {
-                return getProjects()[name] || null;
-            };
-
-            const saveProject = (name, data) => {
+            /**
+             * (新) V7 儲存專案 (加入/更新 metadata)
+             */
+            const saveProject = (name, projectData) => {
                 const projects = getProjects();
-                projects[name] = data;
+                const now = Date.now();
+                
+                // 檢查是否已存在 metadata，若無則使用 'now' 作為建立時間
+                const oldMeta = projects[name] ? projects[name].metadata : null;
+                
+                projects[name] = {
+                    metadata: {
+                        createdAt: oldMeta ? oldMeta.createdAt : now,
+                        lastOpened: now // 儲存時永遠更新 "上次開啟時間"
+                    },
+                    project: projectData // 這是 { title, rules, settings, questions }
+                };
+                
                 localStorage.setItem(DB_KEY, JSON.stringify(projects));
+                
                 appState.currentProjectName = name;
                 appState.projectData.title = name;
                 markAsClean();
+            };
+            
+            /**
+             * (新) V7 取得單一專案 (處理新舊格式)
+             */
+            const getProject = (name) => {
+                const projects = getProjects();
+                const container = projects[name];
+                
+                if (!container) return null;
+                
+                // 處理舊格式 (尚未被 V7 儲存過的)
+                if (!container.metadata) {
+                    return container; // 直接回傳舊的 project data
+                }
+                
+                // 處理新格式
+                return container.project;
             };
             
             const deleteProject = (name) => {
@@ -943,19 +1003,39 @@
             });
 
             openFileBtn.addEventListener('click', () => {
-                populateFileList();
+                populateFileList(); // 載入並排序
                 showModal(openModal);
             });
 
             // --- 開啟舊檔 Modal 邏輯 ---
             let selectedFileToOpen = null;
 
+            /**
+             * (新) V7 載入並排序檔案列表
+             */
             function populateFileList() {
                 const projects = getProjects();
-                const projectNames = Object.keys(projects);
+                
+                // 1. 將物件轉為可排序的陣列
+                const projectList = Object.keys(projects).map(name => {
+                    const proj = projects[name];
+                    // 處理舊格式 (給予預設 0，使其排在最底)
+                    if (!proj.metadata) { 
+                        return { name: name, lastOpened: 0 };
+                    }
+                    // 處理新格式
+                    return {
+                        name: name,
+                        lastOpened: proj.metadata.lastOpened
+                    };
+                });
+                
+                // 2. 依照 lastOpened 時間由新到舊排序
+                projectList.sort((a, b) => b.lastOpened - a.lastOpened);
+
                 fileList.innerHTML = '';
                 
-                if (projectNames.length === 0) {
+                if (projectList.length === 0) {
                     noFilesMessage.style.display = 'block';
                     fileList.style.display = 'none';
                     confirmOpenBtn.disabled = true;
@@ -964,7 +1044,9 @@
                     fileList.style.display = 'block';
                     confirmOpenBtn.disabled = true;
                     
-                    projectNames.forEach(name => {
+                    // 3. 依照排序後的
+                    projectList.forEach(itemData => {
+                        const name = itemData.name;
                         const item = document.createElement('div');
                         item.className = 'file-item';
                         item.dataset.name = name;
@@ -1002,14 +1084,41 @@
                 selectedFileToOpen = null;
             });
 
+            /**
+             * (新) V7 "開啟" 按鈕邏輯 (更新 lastOpened)
+             */
             confirmOpenBtn.addEventListener('click', () => {
                 if (selectedFileToOpen) {
-                    const data = getProject(selectedFileToOpen);
-                    if (data) {
-                        loadProject(selectedFileToOpen, data);
-                        hideModal(openModal);
-                        navigateTo('editor');
+                    
+                    const projects = getProjects();
+                    const container = projects[selectedFileToOpen];
+                    
+                    if (!container) return; // 檔案不存在
+                    
+                    let projectData;
+                    const now = Date.now();
+                    
+                    // 處理舊格式 (尚未遷移)
+                    if (!container.metadata) {
+                        projectData = container; // 舊格式 data 就是 container
+                        // 幫它升級
+                        projects[selectedFileToOpen] = {
+                            metadata: { createdAt: now, lastOpened: now },
+                            project: projectData
+                        };
+                    } else {
+                        // 新格式
+                        projectData = container.project;
+                        container.metadata.lastOpened = now; // 更新開啟時間
                     }
+                    
+                    // 寫回 localStorage
+                    localStorage.setItem(DB_KEY, JSON.stringify(projects));
+
+                    // 載入編輯器
+                    loadProject(selectedFileToOpen, projectData);
+                    hideModal(openModal);
+                    navigateTo('editor');
                 }
             });
 
@@ -1222,10 +1331,14 @@
                 renderQuestionList();
             }
             
+            /**
+             * (新) V7 修正 (questions -> question)
+             */
             function saveCurrentQuestion() {
                 const currentId = appState.currentEditingQuestionId;
                 if (!currentId) return;
 
+                // (修正) 這裡必須是 'question' (單數)
                 const question = appState.projectData.questions.find(q => q.id === currentId);
                 if (!question) return;
                 
@@ -1272,7 +1385,7 @@
             }
             
             /**
-             * (新) V6 修改排版
+             * (新) V7 修改排版
              */
             function addOptionUI(text, index, isCorrect) {
                 const item = document.createElement('div');
@@ -1295,7 +1408,7 @@
                 deleteBtn.className = 'delete-option-btn';
                 deleteBtn.innerHTML = '&times;';
                 
-                // (新) V6 排版： Input, AnswerBtn, DeleteBtn
+                // (新) V7 排版： Input, AnswerBtn, DeleteBtn
                 item.appendChild(textInput);
                 item.appendChild(setAnswerBtn);
                 item.appendChild(deleteBtn);
@@ -1344,10 +1457,10 @@
             // --- 編輯器 - 儲存 & 退出 ---
             
             saveBtn.addEventListener('click', () => {
-                saveUIToData();
+                saveUIToData(); // (新) V7 修正的 saveUIToData
                 const currentName = appState.currentProjectName;
                 if (currentName) {
-                    saveProject(currentName, appState.projectData);
+                    saveProject(currentName, appState.projectData); // (新) V7 的 saveProject
                     showExportModal(currentName);
                 } else {
                     fileNameInput.value = appState.projectData.title;
@@ -1395,7 +1508,7 @@
             
             function saveAndCloseModals(name) {
                 appState.projectData.title = name;
-                saveProject(name, appState.projectData);
+                saveProject(name, appState.projectData); // (新) V7 的 saveProject
                 hideModal(saveModal);
                 hideModal(replaceModal);
                 showExportModal(name);
@@ -1465,37 +1578,14 @@
             
             
             // =======================================================
-            // ---            (新) V6 輔助函式 (Helpers)        ---
-            // =======================================================
-            
-            function escapeHtml(unsafe) {
-                if (unsafe === null || unsafe === undefined) return '';
-                return unsafe.toString()
-                     .replace(/&/g, "&amp;")
-                     .replace(/</g, "&lt;")
-                     .replace(/>/g, "&gt;")
-                     .replace(/"/g, "&quot;")
-                     .replace(/'/g, "&#039;");
-            }
-            
-            /**
-             * (新) V6 修正：將 V4 遺失的 formatTime 加回來
-             */
-            function formatTime(sec) {
-                const m = Math.floor(sec / 60).toString().padStart(2, "0");
-                const s = (sec % 60).toString().padStart(2, "0");
-                return `${m}:${s}`;
-            }
-
-            // =======================================================
             // ---            HTML 匯出邏輯 (核心)            ---
             // =======================================================
             
             exportHtmlBtn.addEventListener('click', () => {
                 try {
-                    saveUIToData();
+                    saveUIToData(); // (新) V7 修正的 saveUIToData
                     const data = appState.projectData;
-                    // generateQuizHtml 現在可以正確找到 formatTime
+                    // (新) V7 修正的 generateQuizHtml (現在可以找到 formatTime)
                     const htmlContent = generateQuizHtml(data); 
                     
                     codeDisplay.value = htmlContent;
@@ -1544,6 +1634,7 @@
                 
                 const antiCheatEnabled = data.settings.cheatDetect;
 
+                // (新) V7 修正：這裡會呼叫 主程式的 formatTime()
                 return `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
