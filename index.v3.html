@@ -1566,64 +1566,64 @@
             
             
             // =======================================================
-            // ---            HTML 匯出邏輯 (核心)            ---
+            // --- HTML 匯出邏輯 (核心) ---
             // =======================================================
-            
-            exportHtmlBtn.addEventListener('click', () => {
-                try {
-                    saveUIToData(); // (新) V11 修正的 saveUIToData
-                    const data = appState.projectData;
-                    // (新) V11 修正的 generateQuizHtml (現在可以找到 formatTime)
-                    const htmlContent = generateQuizHtml(data); 
-                    
-                    codeDisplay.value = htmlContent;
-                    
-                    hideModal(exportModal);
-                    showModal(codeModal);
-                } catch (e) {
-                    console.error('匯出時發生錯誤:', e);
-                    alert(`匯出失敗！\n錯誤訊息：${e.message}\n\n請檢查您的題目資料（例如多媒體網址或選項）是否完整。`);
-                }
-            });
-            
-            function downloadFile(filename, content) {
-                const element = document.createElement('a');
-                const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
-                element.setAttribute('href', URL.createObjectURL(blob));
-                element.setAttribute('download', `${filename.replace(/[\/\\?%*:|"<>]/g, '-') || '測驗'}.html`);
-                element.style.display = 'none';
-                document.body.appendChild(element);
-                element.click();
-                document.body.removeChild(element);
+
+exportHtmlBtn.addEventListener('click', () => {
+    try {
+        saveUIToData(); // (新) V11 修正的 saveUIToData
+        const data = appState.projectData;
+        // (新) V11 修正的 generateQuizHtml (現在可以找到 formatTime)
+        const htmlContent = generateQuizHtml(data); 
+
+        codeDisplay.value = htmlContent;
+
+        hideModal(exportModal);
+        showModal(codeModal);
+    } catch (e) {
+        console.error('匯出時發生錯誤:', e);
+        alert(`匯出失敗！\n錯誤訊息：${e.message}\n\n請檢查您的題目資料（例如多媒體網址或選項）是否完整。`);
+    }
+});
+
+function downloadFile(filename, content) {
+    // ... (此函式保持不變)
+}
+
+function generateQuizHtml(data) {
+
+    const questionsWithObjectOptions = (data.questions || []).map(q => {
+        const newQ = { ...q };
+        newQ.options = (q.options || []).map(opt => {
+            if (typeof opt === 'string') {
+                return { text: opt };
             }
+            return opt;
+        });
+        return newQ;
+    });
+    
+    // 將 JSON 原始字串化
+    const questionsJsonRaw = JSON.stringify(questionsWithObjectOptions, null, 2);
 
-            function generateQuizHtml(data) {
-                
-                const questionsWithObjectOptions = (data.questions || []).map(q => {
-                    const newQ = { ...q };
-                    newQ.options = (q.options || []).map(opt => {
-                        if (typeof opt === 'string') {
-                            return { text: opt };
-                        }
-                        return opt;
-                    });
-                    return newQ;
-                });
-                const questionsJson = JSON.stringify(questionsWithObjectOptions, null, 2);
-                
-                const rulesHtml = (data.rules || '')
-                    .split('\n')
-                    .map(line => line.trim() ? `<li>${escapeHtml(line)}</li>` : '')
-                    .join('\n');
-                
-                const timeEnabled = data.settings.timeLimit.enabled;
-                const timeDuration = data.settings.timeLimit.duration;
-                const timeDurationSeconds = timeDuration * 60;
-                
-                const antiCheatEnabled = data.settings.cheatDetect;
+    // ★★★ 修正 2: 對 JSON 進行安全轉義，防止破壞 HTML <script> 標籤 (Syntax error 修正)
+    const questionsJson = questionsJsonRaw
+        .replace(/\\u0000/g, '') // 移除 null 字元
+        .replace(/<\/script/g, '<\\/script'); // 轉義所有 </script> 標記
+        
+    const rulesHtml = (data.rules || '')
+        .split('\n')
+        .map(line => line.trim() ? `<li>${escapeHtml(line)}</li>` : '')
+        .join('\n');
 
-                // (新) V11 修正：這裡會呼叫 主程式的 formatTime()
-                return `<!DOCTYPE html>
+    const timeEnabled = data.settings.timeLimit.enabled;
+    const timeDuration = data.settings.timeLimit.duration;
+    const timeDurationSeconds = timeDuration * 60;
+
+    const antiCheatEnabled = data.settings.cheatDetect;
+
+    // (新) V11 修正：這裡會呼叫 主程式的 formatTime()
+    return `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8" />
@@ -1845,8 +1845,10 @@
             <h2>📜 考試規則</h2>
             <ul>
                 ${rulesHtml || '<li>請遵守考試規則。</li>'}
-                ${timeEnabled ? `<li>考試總時間為 ${timeDuration} 分鐘，請留意右上角倒數。</li>` : '<li>本次考試時間不限。</li>'}
+                <li>考試總時間為 ${timeDuration} 分鐘，請留意右上角倒數。</li>
+                
                 <li>共有 ${data.questions.length} 題。</li>
+                
                 ${antiCheatEnabled ? '<li>考試期間禁止切換畫面或離開視窗，違者將自動交卷。</li>' : ''}
             </ul>
             <button id="start-btn">開始考試</button>
@@ -1925,7 +1927,7 @@
             const q = questions[current];
             if (!q) return;
 
-            questionText.innerHTML = \`第 \${current + 1} 題 / ${questions.length} 題：<br>\${escapeHtml(q.text)}\`;
+            questionText.innerHTML = \`第 \${current + 1} 題 / \${questions.length} 題：<br>\${escapeHtml(q.text)}\`;
 
             mediaContainer.innerHTML = "";
             if (q.type === 'media' && q.media && q.media.src) {
@@ -2096,20 +2098,21 @@
         function escapeHtml(unsafe) {
             if (unsafe === null || unsafe === undefined) return '';
             return unsafe.toString()
-                 .replace(/&/g, "&amp;")
-                 .replace(/</g, "&lt;")
-                 .replace(/>/g, "&gt;")
-                 .replace(/"/g, "&quot;")
-                 .replace(/'/g, "&#039;");
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
     <\/script>
 </body>
 </html>`;
-            }
-            
-            // 立即執行，初始化頁面
-            navigateTo('home');
-        });
+}
+
+// 立即執行，初始化頁面
+navigateTo('home');
+});
     </script>
 </body>
 </html>
+
