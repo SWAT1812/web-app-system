@@ -8,20 +8,7 @@
     <meta name="theme-color" content="#007bff">
     <link rel="apple-touch-icon" href="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000036-a265fa2660/cda_app_icon_id10000.ico?ph=925d84add0">
     
-    <link rel="manifest" href="data:application/json,{
-        &quot;name&quot;: &quot;PWA 出題系統&quot;,
-        &quot;short_name&quot;: &quot;出題系統&quot;,
-        &quot;start_url&quot;: &quot;.&quot;,
-        &quot;display&quot;: &quot;standalone&quot;,
-        &quot;background_color&quot;: &quot;#ffffff&quot;,
-        &quot;theme_color&quot;: &quot;#007bff&quot;,
-        &quot;description&quot;: &quot;一個現代化的 PWA 出題工具&quot;,
-        &quot;icons&quot;: [{
-            &quot;src&quot;: &quot;https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000036-a265fa2660/cda_app_icon_id10000.ico?ph=925d84add0&quot;,
-            &quot;sizes&quot;: &quot;192x192&quot;,
-            &quot;type&quot;: &quot;image/x-icon&quot;
-        }]
-    }">
+    <link rel="manifest" href="data:application/json;charset=utf-8,{&quot;name&quot;:&quot;PWA 出題系統&quot;,&quot;short_name&quot;:&quot;出題系統&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#ffffff&quot;,&quot;theme_color&quot;:&quot;#007bff&quot;,&quot;description&quot;:&quot;一個現代化的 PWA 出題工具&quot;,&quot;icons&quot;:[{&quot;src&quot;:&quot;https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000036-a265fa2660/cda_app_icon_id10000.ico?ph=925d84add0&quot;,&quot;sizes&quot;:&quot;192x192&quot;,&quot;type&quot;:&quot;image/x-icon&quot;}]}">
     
     <link rel="icon" href="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000036-a265fa2660/cda_app_icon_id10000.ico?ph=925d84add0" type="image/x-icon">
 
@@ -351,7 +338,7 @@
             flex-grow: 1;
         }
         
-        /* (新) V8 按鈕樣式 (同 V7) */
+        /* (新) V9 按鈕樣式 (同 V7) */
         .set-answer-btn {
             background: #28a745;
             width: 40px;
@@ -903,7 +890,7 @@
             }
             
             // =======================================================
-            // --- (新) V8 輔助函式 (Helpers) ---
+            // --- (新) V9 輔助函式 (Helpers) ---
             // =======================================================
             
             function escapeHtml(unsafe) {
@@ -917,7 +904,7 @@
             }
             
             /**
-             * (新) V8 修正：將 V7 遺失的 formatTime 加回來
+             * (新) V9 修正：將 formatTime 加回來
              */
             function formatTime(sec) {
                 const m = Math.floor(sec / 60).toString().padStart(2, "0");
@@ -926,7 +913,7 @@
             }
             
             // =======================================================
-            // --- (新) V8 資料庫 (LocalStorage) 操作 (含排序) ---
+            // --- (新) V9 資料庫 (LocalStorage) 操作 (含排序) ---
             // =======================================================
 
             /**
@@ -939,7 +926,7 @@
             };
 
             /**
-             * (新) V8 儲存專案 (加入/更新 metadata)
+             * (新) V9 儲存專案 (加入/更新 metadata)
              */
             const saveProject = (name, projectData) => {
                 const projects = getProjects();
@@ -964,7 +951,7 @@
             };
             
             /**
-             * (新) V8 取得單一專案 (處理新舊格式)
+             * (新) V9 取得單一專案 (處理新舊格式)
              */
             const getProject = (name) => {
                 const projects = getProjects();
@@ -1012,7 +999,7 @@
             let selectedFileToOpen = null;
 
             /**
-             * (新) V8 載入並排序檔案列表
+             * (新) V9 載入並排序檔案列表
              */
             function populateFileList() {
                 const projects = getProjects();
@@ -1086,7 +1073,7 @@
             });
 
             /**
-             * (新) V8 "開啟" 按鈕邏輯 (更新 lastOpened)
+             * (新) V9 "開啟" 按鈕邏輯 (更新 lastOpened)
              */
             confirmOpenBtn.addEventListener('click', () => {
                 if (selectedFileToOpen) {
@@ -1333,7 +1320,7 @@
             }
             
             /**
-             * (新) V8 修正 (questions -> question)
+             * (新) V9 修正 (questions -> question)
              */
             function saveCurrentQuestion() {
                 const currentId = appState.currentEditingQuestionId;
@@ -1386,7 +1373,7 @@
             }
             
             /**
-             * (新) V8 修改排版
+             * (新) V9 修改排版
              */
             function addOptionUI(text, index, isCorrect) {
                 const item = document.createElement('div');
@@ -1409,7 +1396,7 @@
                 deleteBtn.className = 'delete-option-btn';
                 deleteBtn.innerHTML = '&times;';
                 
-                // (新) V8 排版： Input, AnswerBtn, DeleteBtn
+                // (新) V9 排版： Input, AnswerBtn, DeleteBtn
                 item.appendChild(textInput);
                 item.appendChild(setAnswerBtn);
                 item.appendChild(deleteBtn);
@@ -1458,10 +1445,10 @@
             // --- 編輯器 - 儲存 & 退出 ---
             
             saveBtn.addEventListener('click', () => {
-                saveUIToData(); // (新) V8 修正的 saveUIToData
+                saveUIToData(); // (新) V9 修正的 saveUIToData
                 const currentName = appState.currentProjectName;
                 if (currentName) {
-                    saveProject(currentName, appState.projectData); // (新) V8 的 saveProject
+                    saveProject(currentName, appState.projectData); // (新) V9 的 saveProject
                     showExportModal(currentName);
                 } else {
                     fileNameInput.value = appState.projectData.title;
@@ -1509,7 +1496,7 @@
             
             function saveAndCloseModals(name) {
                 appState.projectData.title = name;
-                saveProject(name, appState.projectData); // (新) V8 的 saveProject
+                saveProject(name, appState.projectData); // (新) V9 的 saveProject
                 hideModal(saveModal);
                 hideModal(replaceModal);
                 showExportModal(name);
@@ -1584,9 +1571,9 @@
             
             exportHtmlBtn.addEventListener('click', () => {
                 try {
-                    saveUIToData(); // (新) V8 修正的 saveUIToData
+                    saveUIToData(); // (新) V9 修正的 saveUIToData
                     const data = appState.projectData;
-                    // (新) V8 修正的 generateQuizHtml (現在可以找到 formatTime)
+                    // (新) V9 修正的 generateQuizHtml (現在可以找到 formatTime)
                     const htmlContent = generateQuizHtml(data); 
                     
                     codeDisplay.value = htmlContent;
@@ -1635,7 +1622,7 @@
                 
                 const antiCheatEnabled = data.settings.cheatDetect;
 
-                // (新) V8 修正：這裡會呼叫 主程式的 formatTime()
+                // (新) V9 修正：這裡會呼叫 主程式的 formatTime()
                 return `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -2126,4 +2113,3 @@
     </script>
 </body>
 </html>
-
