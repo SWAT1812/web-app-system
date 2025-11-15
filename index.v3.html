@@ -351,7 +351,7 @@
             flex-grow: 1;
         }
         
-        /* (新) V7 按鈕樣式 */
+        /* (新) V8 按鈕樣式 (同 V7) */
         .set-answer-btn {
             background: #28a745;
             width: 40px;
@@ -604,11 +604,11 @@
             <h1>歡迎，今天要如何開始？</h1>
             <div class="action-cards">
                 <div class="card" id="open-file-btn">
-                    <img src="https://duyn491kcolsw.cloudfront.net/files/1r/1ri/1rivci.svg" alt="開啟舊檔">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSGS3__w_1dR3HUQEOGVzeU-thL66ibJAmqx4oBqqjeekqscgzt_jD6vEVgE8dqHnBRbJw&usqp=CAU" alt="開啟舊檔">
                     <h2>開啟舊檔</h2>
                 </div>
                 <div class="card" id="new-file-btn">
-                    <img src="https://duyn491kcolsw.cloudfront.net/files/21/21k/21kbci.svg" alt="建立新題目">
+                    <img src="https://media.istockphoto.com/id/1253202013/zh/%E5%90%91%E9%87%8F/%E5%BB%BA%E7%AB%B0%E6%96%B0%E6%AA%94%E6%A1%88%E5%9C%96%E7%A4%BA.jpg?s=612x612&w=0&k=20&c=oqS3OHmS183dVoneJ01iQgIjnPQYMIE5uMfOShOt7n0=" alt="建立新題目">
                     <h2>建立新題目</h2>
                 </div>
             </div>
@@ -901,9 +901,9 @@
                     pages[pageName].classList.add('active');
                 }
             }
-
+            
             // =======================================================
-            // --- (新) V7 輔助函式 (Helpers) ---
+            // --- (新) V8 輔助函式 (Helpers) ---
             // =======================================================
             
             function escapeHtml(unsafe) {
@@ -917,20 +917,20 @@
             }
             
             /**
-             * (新) V7 修正：將 V6 遺失的 formatTime 加回來
+             * (新) V8 修正：將 V7 遺失的 formatTime 加回來
              */
             function formatTime(sec) {
                 const m = Math.floor(sec / 60).toString().padStart(2, "0");
                 const s = (sec % 60).toString().padStart(2, "0");
                 return `${m}:${s}`;
             }
-
+            
             // =======================================================
-            // --- (新) V7 資料庫 (LocalStorage) 操作 (含排序) ---
+            // --- (新) V8 資料庫 (LocalStorage) 操作 (含排序) ---
             // =======================================================
 
             /**
-             * 讀取所有專案 (維持 V6 格式)
+             * 讀取所有專案 (維持 V7 格式)
              * { "projName": { metadata: {...}, project: {...} }, ... }
              */
             const getProjects = () => {
@@ -939,7 +939,7 @@
             };
 
             /**
-             * (新) V7 儲存專案 (加入/更新 metadata)
+             * (新) V8 儲存專案 (加入/更新 metadata)
              */
             const saveProject = (name, projectData) => {
                 const projects = getProjects();
@@ -964,7 +964,7 @@
             };
             
             /**
-             * (新) V7 取得單一專案 (處理新舊格式)
+             * (新) V8 取得單一專案 (處理新舊格式)
              */
             const getProject = (name) => {
                 const projects = getProjects();
@@ -992,6 +992,7 @@
                 return getProjects().hasOwnProperty(name);
             };
 
+
             // --- Modal 控制 ---
             const showModal = (modal) => modal.classList.add('active');
             const hideModal = (modal) => modal.classList.remove('active');
@@ -1011,7 +1012,7 @@
             let selectedFileToOpen = null;
 
             /**
-             * (新) V7 載入並排序檔案列表
+             * (新) V8 載入並排序檔案列表
              */
             function populateFileList() {
                 const projects = getProjects();
@@ -1085,7 +1086,7 @@
             });
 
             /**
-             * (新) V7 "開啟" 按鈕邏輯 (更新 lastOpened)
+             * (新) V8 "開啟" 按鈕邏輯 (更新 lastOpened)
              */
             confirmOpenBtn.addEventListener('click', () => {
                 if (selectedFileToOpen) {
@@ -1332,7 +1333,7 @@
             }
             
             /**
-             * (新) V7 修正 (questions -> question)
+             * (新) V8 修正 (questions -> question)
              */
             function saveCurrentQuestion() {
                 const currentId = appState.currentEditingQuestionId;
@@ -1385,7 +1386,7 @@
             }
             
             /**
-             * (新) V7 修改排版
+             * (新) V8 修改排版
              */
             function addOptionUI(text, index, isCorrect) {
                 const item = document.createElement('div');
@@ -1408,7 +1409,7 @@
                 deleteBtn.className = 'delete-option-btn';
                 deleteBtn.innerHTML = '&times;';
                 
-                // (新) V7 排版： Input, AnswerBtn, DeleteBtn
+                // (新) V8 排版： Input, AnswerBtn, DeleteBtn
                 item.appendChild(textInput);
                 item.appendChild(setAnswerBtn);
                 item.appendChild(deleteBtn);
@@ -1457,10 +1458,10 @@
             // --- 編輯器 - 儲存 & 退出 ---
             
             saveBtn.addEventListener('click', () => {
-                saveUIToData(); // (新) V7 修正的 saveUIToData
+                saveUIToData(); // (新) V8 修正的 saveUIToData
                 const currentName = appState.currentProjectName;
                 if (currentName) {
-                    saveProject(currentName, appState.projectData); // (新) V7 的 saveProject
+                    saveProject(currentName, appState.projectData); // (新) V8 的 saveProject
                     showExportModal(currentName);
                 } else {
                     fileNameInput.value = appState.projectData.title;
@@ -1508,7 +1509,7 @@
             
             function saveAndCloseModals(name) {
                 appState.projectData.title = name;
-                saveProject(name, appState.projectData); // (新) V7 的 saveProject
+                saveProject(name, appState.projectData); // (新) V8 的 saveProject
                 hideModal(saveModal);
                 hideModal(replaceModal);
                 showExportModal(name);
@@ -1583,9 +1584,9 @@
             
             exportHtmlBtn.addEventListener('click', () => {
                 try {
-                    saveUIToData(); // (新) V7 修正的 saveUIToData
+                    saveUIToData(); // (新) V8 修正的 saveUIToData
                     const data = appState.projectData;
-                    // (新) V7 修正的 generateQuizHtml (現在可以找到 formatTime)
+                    // (新) V8 修正的 generateQuizHtml (現在可以找到 formatTime)
                     const htmlContent = generateQuizHtml(data); 
                     
                     codeDisplay.value = htmlContent;
@@ -1634,7 +1635,7 @@
                 
                 const antiCheatEnabled = data.settings.cheatDetect;
 
-                // (新) V7 修正：這裡會呼叫 主程式的 formatTime()
+                // (新) V8 修正：這裡會呼叫 主程式的 formatTime()
                 return `<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -2125,4 +2126,3 @@
     </script>
 </body>
 </html>
-
