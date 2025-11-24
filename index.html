@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>出題系統</title>
+  <title>現代化出題系統 Pro (Max)</title>
+  <link rel="icon" href="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000037-1fde21fde4/accessoriestexteditor_94073.ico?ph=925d84add0">
   <style>
     :root {
       --primary: #4f46e5;
@@ -42,7 +43,7 @@
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
       padding: 10px 20px; border-radius: 8px; font-weight: 500; cursor: pointer; border: none; outline: none; font-size: 0.95rem;
-      transition: all 0.2s;
+      transition: all 0.2s; user-select: none;
     }
     .btn:active { transform: scale(0.98); }
     .btn-primary { background: var(--primary); color: white; }
@@ -61,27 +62,23 @@
     .btn-load-option:hover { border-color: var(--primary); background: var(--card-bg); box-shadow: var(--shadow); }
     .btn-load-option .icon-box { display: flex; justify-content: center; align-items: center; width: 40px; height: 40px; background: rgba(79, 70, 229, 0.1); border-radius: 50%; color: var(--primary); }
 
-    /* Views */
+    /* Layout */
     .view { display: none; height: 100%; flex-direction: column; }
     .view.active { display: flex; animation: fadeIn 0.3s ease-out; }
 
-    /* Home */
     #home-view { justify-content: center; align-items: center; }
     .hero-card { background: var(--card-bg); padding: 60px; border-radius: 24px; box-shadow: var(--shadow); text-align: center; max-width: 480px; width: 90%; }
     .hero-title { font-size: 2rem; margin-bottom: 40px; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 15px; }
     .home-actions { display: grid; gap: 15px; }
 
-    /* Editor Layout */
     .editor-header { height: 70px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; padding: 0 24px; z-index: 10; }
     .title-input { font-size: 1.2rem; font-weight: bold; border: none; background: transparent; color: var(--text-color); border-bottom: 2px solid transparent; padding: 5px; width: 300px; text-align: center; }
     .title-input:focus { border-bottom-color: var(--primary); outline: none; }
 
     .editor-body { flex: 1; display: flex; overflow: hidden; }
-    
     .sidebar { width: 300px; background: var(--card-bg); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; }
     .sidebar-header { padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
     
-    /* Drag & Drop Styles for Sidebar */
     .q-list { flex: 1; overflow-y: auto; padding: 10px; }
     .q-item { 
       padding: 12px; border-radius: 8px; margin-bottom: 8px; cursor: grab; border: 1px solid transparent; 
@@ -92,12 +89,10 @@
     .q-item.dragging { opacity: 0.5; border: 2px dashed var(--primary); }
     .q-preview { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; font-size: 0.9rem; pointer-events: none; }
 
-    /* Advanced Settings in Sidebar */
     .sidebar-footer { padding: 20px; border-top: 1px solid var(--border-color); background: var(--card-bg); }
     .adv-setting-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.9rem; }
     .adv-input { width: 70px; padding: 4px; border: 1px solid var(--border-color); border-radius: 4px; text-align: center; background: var(--bg-color); color: var(--text-color); }
     
-    /* Main Area */
     .main-area { flex: 1; padding: 40px; overflow-y: auto; background: var(--bg-color); }
     .editor-card { max-width: 800px; margin: 0 auto; background: var(--card-bg); padding: 40px; border-radius: 16px; box-shadow: var(--shadow); }
 
@@ -106,18 +101,15 @@
     .input-field { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-color); color: var(--text-color); font-size: 1rem; }
     .input-field:focus { border-color: var(--primary); outline: none; }
 
-    /* Drag & Drop for Options */
     .option-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; transition: transform 0.2s; background: var(--card-bg); }
     .option-row.dragging { opacity: 0.4; }
     .drag-handle { cursor: grab; color: var(--text-secondary); padding: 5px; display: flex; align-items: center; }
     .drag-handle:active { cursor: grabbing; color: var(--primary); }
     .radio-custom { width: 20px; height: 20px; cursor: pointer; accent-color: var(--primary); }
 
-    /* Settings FAB */
     .fab { position: fixed; bottom: 30px; right: 30px; width: 56px; height: 56px; background: var(--card-bg); border-radius: 50%; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-color); z-index: 50; }
     .fab:hover { transform: rotate(90deg); color: var(--primary); }
 
-    /* Modals */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; opacity: 0; transition: opacity 0.3s; }
     .modal-overlay.open { display: flex; opacity: 1; }
     .modal-content { background: var(--card-bg); width: 90%; max-width: 500px; padding: 30px; border-radius: 20px; box-shadow: var(--shadow); transform: translateY(20px); transition: transform 0.3s; }
@@ -129,14 +121,40 @@
     .storage-item:hover { background: var(--bg-color); }
     .storage-info { display: flex; flex-direction: column; gap: 4px; cursor: pointer; flex: 1; }
 
+    /* Custom Context Menu */
+    .context-menu {
+      position: absolute;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 6px 0;
+      width: 200px;
+      z-index: 9999;
+      display: none;
+      flex-direction: column;
+      font-size: 0.95rem;
+    }
+    .menu-item {
+      padding: 10px 20px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--text-color);
+      transition: background 0.1s;
+    }
+    .menu-item:hover { background: var(--bg-color); }
+    .menu-item.disabled { color: var(--text-secondary); opacity: 0.5; cursor: default; pointer-events: none; }
+    .menu-item .shortcut { font-size: 0.8rem; color: var(--text-secondary); }
+    .menu-divider { height: 1px; background: var(--border-color); margin: 6px 0; }
+
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
     .hidden { display: none !important; }
     .d-flex { display: flex; gap: 10px; }
   </style>
 </head>
-<body>
-
-  <svg style="display: none;">
+<body oncontextmenu="return false"> <svg style="display: none;">
     <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
     <symbol id="icon-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
     <symbol id="icon-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
@@ -146,14 +164,14 @@
     <symbol id="icon-back" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
     <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
     <symbol id="icon-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></symbol>
-    <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/></symbol>
+    <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
     <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
     <symbol id="icon-drag" viewBox="0 0 24 24"><circle cx="9" cy="5" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="19" r="1"/></symbol>
   </svg>
 
   <div id="home-view" class="view active">
     <div class="hero-card">
-      <h1 class="hero-title"><svg class="icon" style="width:40px;height:40px;"><use href="#icon-edit"/></svg> Exam Editor Pro</h1>
+      <h1 class="hero-title"><svg class="icon" style="width:40px;height:40px;"><use href="#icon-edit"/></svg> 出題系統 Pro</h1>
       <div class="home-actions">
         <button class="btn btn-primary" onclick="createNewExam()"><svg class="icon"><use href="#icon-plus"/></svg> 創建新題目</button>
         <button class="btn btn-outline" onclick="openLoadModal()"><svg class="icon"><use href="#icon-folder"/></svg> 開啟舊檔</button>
@@ -180,7 +198,6 @@
           <button class="btn btn-ghost" onclick="addQuestion()"><svg class="icon"><use href="#icon-plus"/></svg></button>
         </div>
         <div id="question-list" class="q-list"></div>
-        
         <div class="sidebar-footer">
           <h4 style="margin-bottom:15px; font-size:0.9rem; color:var(--text-secondary);">進階設定 (匯出時套用)</h4>
           <div class="adv-setting-row">
@@ -193,14 +210,12 @@
           </div>
         </div>
       </aside>
-
       <main class="main-area">
         <div class="editor-card">
           <div class="form-group">
             <label class="label">題目內容</label>
             <textarea id="q-text" class="input-field" rows="3" placeholder="輸入題目敘述..."></textarea>
           </div>
-
           <div class="form-group">
             <label class="label">多媒體資源 (選填)</label>
             <div class="d-flex">
@@ -213,19 +228,25 @@
               <input type="text" id="q-media-src" class="input-field" placeholder="https://...">
             </div>
           </div>
-
           <div class="form-group">
             <label class="label">選項 (拖曳可排序，點擊圓鈕設為正解)</label>
             <div id="options-container"></div>
             <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="addOption()"><svg class="icon"><use href="#icon-plus"/></svg> 新增選項</button>
           </div>
-
           <div style="text-align: right; margin-top: 30px;">
             <button class="btn btn-danger" onclick="deleteQuestion()"><svg class="icon"><use href="#icon-trash"/></svg> 刪除本題</button>
           </div>
         </div>
       </main>
     </div>
+  </div>
+
+  <div id="custom-context-menu" class="context-menu">
+    <div class="menu-item" id="cm-cut" onclick="execCmd('cut')">✂️ 剪下 <span class="shortcut">Ctrl+X</span></div>
+    <div class="menu-item" id="cm-copy" onclick="execCmd('copy')">📄 複製 <span class="shortcut">Ctrl+C</span></div>
+    <div class="menu-item" id="cm-paste" onclick="execCmd('paste')">📋 貼上 <span class="shortcut">Ctrl+V</span></div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" id="cm-select-all" onclick="execCmd('selectAll')">▣ 選取全部 <span class="shortcut">Ctrl+A</span></div>
   </div>
 
   <div class="fab" onclick="openSettingsModal()"><svg class="icon" style="width:28px;height:28px;"><use href="#icon-settings"/></svg></div>
@@ -262,19 +283,90 @@
 
   <script>
     const DB_KEY = 'EXAM_CREATOR_DB';
-    let currentExam = {
-      id: null,
-      title: "未命名試卷",
-      questions: [],
-      settings: { timeLimit: 30, antiCheat: true },
-      lastModified: Date.now()
-    };
+    let currentExam = { id: null, title: "未命名試卷", questions: [], settings: { timeLimit: 30, antiCheat: true }, lastModified: Date.now() };
     let currentQIndex = -1;
     let lastSavedState = "";
     let dragSrcEl = null;
 
     document.addEventListener('DOMContentLoaded', loadSettings);
 
+    // --- Context Menu Logic ---
+    const contextMenu = document.getElementById('custom-context-menu');
+    let targetEl = null;
+
+    document.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      targetEl = e.target;
+      const isInput = targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA';
+      const selectedText = window.getSelection().toString();
+      const hasSelection = selectedText.length > 0 || (isInput && targetEl.value && (targetEl.selectionEnd - targetEl.selectionStart > 0));
+
+      // Cut: Enabled if input AND has selection
+      toggleMenu('cm-cut', isInput && hasSelection);
+      // Copy: Enabled if has selection
+      toggleMenu('cm-copy', hasSelection);
+      // Paste: Enabled only if input (Browser security prevents checking clipboard content freely)
+      toggleMenu('cm-paste', isInput);
+      // Select All: Enabled if input OR content present
+      toggleMenu('cm-select-all', isInput || document.body.innerText.length > 0);
+
+      // 如果全部都停用，且不在 Input 內，可能就不顯示選單，但這裡為了展示功能，我們總是顯示但變灰
+      contextMenu.style.display = 'flex';
+      
+      // Prevent menu going off screen
+      let x = e.pageX;
+      let y = e.pageY;
+      if (x + 200 > window.innerWidth) x -= 200;
+      contextMenu.style.left = x + 'px';
+      contextMenu.style.top = y + 'px';
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!contextMenu.contains(e.target)) contextMenu.style.display = 'none';
+    });
+
+    function toggleMenu(id, enabled) {
+      const el = document.getElementById(id);
+      if (enabled) el.classList.remove('disabled'); else el.classList.add('disabled');
+    }
+
+    async function execCmd(cmd) {
+      contextMenu.style.display = 'none';
+      const isInput = targetEl && (targetEl.tagName === 'INPUT' || targetEl.tagName === 'TEXTAREA');
+
+      if (cmd === 'paste') {
+        if (!isInput) return;
+        try {
+          const text = await navigator.clipboard.readText();
+          if (!text) return alert("剪貼簿是空的！");
+          const start = targetEl.selectionStart;
+          const end = targetEl.selectionEnd;
+          const val = targetEl.value;
+          targetEl.value = val.slice(0, start) + text + val.slice(end);
+          targetEl.selectionStart = targetEl.selectionEnd = start + text.length;
+          targetEl.dispatchEvent(new Event('input')); // Trigger save
+          saveCurrentQ();
+        } catch (err) {
+          alert('無法讀取剪貼簿，請使用 Ctrl+V 貼上。\n(瀏覽器可能封鎖了權限)');
+        }
+        return;
+      }
+
+      if (cmd === 'selectAll') {
+        if (isInput) targetEl.select();
+        else window.getSelection().selectAllChildren(document.body);
+        return;
+      }
+
+      // Copy & Cut
+      try {
+        document.execCommand(cmd);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // --- App Logic ---
     function showView(id) { document.querySelectorAll('.view').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function goHome() {
       saveCurrentQ(false);
@@ -284,436 +376,108 @@
     function updateLastSavedState() { lastSavedState = JSON.stringify(currentExam); }
 
     function createNewExam() {
-      currentExam = {
-        id: Date.now().toString(),
-        title: "未命名試卷",
-        questions: [{ text: "範例題目", options: ["選項A", "選項B"], correct: 0 }],
-        settings: { timeLimit: 30, antiCheat: true },
-        lastModified: Date.now()
-      };
-      updateLastSavedState();
-      startEditor();
+      currentExam = { id: Date.now().toString(), title: "第一次線上考試", questions: [{ text: "範例題目", options: ["選項A", "選項B"], correct: 0 }], settings: { timeLimit: 30, antiCheat: true }, lastModified: Date.now() };
+      updateLastSavedState(); startEditor();
     }
-
     function startEditor() {
       document.getElementById('exam-title').value = currentExam.title;
-      // Load Settings
       if(!currentExam.settings) currentExam.settings = { timeLimit: 30, antiCheat: true };
       document.getElementById('set-time').value = currentExam.settings.timeLimit;
       document.getElementById('set-cheat').checked = currentExam.settings.antiCheat;
-
-      currentQIndex = 0;
-      renderSidebar();
-      loadQuestionToEditor();
-      showView('editor-view');
+      currentQIndex = 0; renderSidebar(); loadQuestionToEditor(); showView('editor-view');
     }
-
-    // --- Data Logic ---
     function updateExamSettings() {
       currentExam.settings.timeLimit = parseInt(document.getElementById('set-time').value) || 30;
       currentExam.settings.antiCheat = document.getElementById('set-cheat').checked;
-      saveToLocalStorage(false); // Silent save settings
+      saveToLocalStorage(false);
     }
-
     function saveCurrentQ(updateTimestamp = true) {
       if (currentQIndex === -1 || !currentExam.questions[currentQIndex]) return;
-      
       const q = currentExam.questions[currentQIndex];
       q.text = document.getElementById('q-text').value;
       q.media = { type: document.getElementById('q-media-type').value, src: document.getElementById('q-media-src').value };
       if(!q.media.type) delete q.media;
-
-      // Options & Correct Answer
       const optRows = Array.from(document.querySelectorAll('#options-container .option-row'));
       q.options = optRows.map(row => row.querySelector('.opt-text').value);
-      
       const checkedRadio = document.querySelector('input[name="correct-ans"]:checked');
-      // If we are dragging, indices might match visual order
       q.correct = checkedRadio ? parseInt(checkedRadio.value) : 0;
-      
       currentExam.title = document.getElementById('exam-title').value;
       if(updateTimestamp) currentExam.lastModified = Date.now();
-      
-      // Update Preview Text
       const item = document.querySelectorAll('.q-item')[currentQIndex];
       if(item) item.querySelector('.q-preview').textContent = `Q${currentQIndex+1}. ${q.text}`;
     }
 
-    // --- Rendering & Drag-n-Drop for Questions ---
     function renderSidebar() {
-      const list = document.getElementById('question-list');
-      list.innerHTML = '';
+      const list = document.getElementById('question-list'); list.innerHTML = '';
       currentExam.questions.forEach((q, i) => {
-        const div = document.createElement('div');
-        div.className = `q-item ${i === currentQIndex ? 'active' : ''}`;
-        div.draggable = true; // Enable Drag
-        div.dataset.index = i;
+        const div = document.createElement('div'); div.className = `q-item ${i === currentQIndex ? 'active' : ''}`;
+        div.draggable = true; div.dataset.index = i;
         div.innerHTML = `<span class="q-preview">Q${i+1}. ${q.text || '無標題'}</span><svg class="icon" style="opacity:0.5;width:16px;"><use href="#icon-drag"/></svg>`;
-        
         div.onclick = () => { saveCurrentQ(); currentQIndex = i; renderSidebar(); loadQuestionToEditor(); };
-        
-        // Drag Events
-        div.addEventListener('dragstart', handleQDragStart);
-        div.addEventListener('dragover', handleQDragOver);
-        div.addEventListener('drop', handleQDrop);
-        div.addEventListener('dragend', handleQDragEnd);
-        
+        div.addEventListener('dragstart', function(e){dragSrcEl=this;e.dataTransfer.effectAllowed='move';this.classList.add('dragging');});
+        div.addEventListener('dragover', function(e){if(e.preventDefault)e.preventDefault();e.dataTransfer.dropEffect='move';return false;});
+        div.addEventListener('drop', function(e){
+          e.stopPropagation();
+          if(dragSrcEl!==this){
+            const oldIndex=parseInt(dragSrcEl.dataset.index); const newIndex=parseInt(this.dataset.index);
+            const movedItem=currentExam.questions.splice(oldIndex,1)[0]; currentExam.questions.splice(newIndex,0,movedItem);
+            if(currentQIndex===oldIndex)currentQIndex=newIndex;
+            else if(currentQIndex>oldIndex&&currentQIndex<=newIndex)currentQIndex--;
+            else if(currentQIndex<oldIndex&&currentQIndex>=newIndex)currentQIndex++;
+            renderSidebar(); loadQuestionToEditor();
+          } return false;
+        });
+        div.addEventListener('dragend', function(){this.classList.remove('dragging');});
         list.appendChild(div);
       });
     }
 
-    // Question DnD Handlers
-    function handleQDragStart(e) {
-      dragSrcEl = this;
-      e.dataTransfer.effectAllowed = 'move';
-      this.classList.add('dragging');
-    }
-    function handleQDragOver(e) {
-      if (e.preventDefault) e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      return false;
-    }
-    function handleQDrop(e) {
-      e.stopPropagation();
-      if (dragSrcEl !== this) {
-        // Reorder Array
-        const oldIndex = parseInt(dragSrcEl.dataset.index);
-        const newIndex = parseInt(this.dataset.index);
-        
-        // Move item
-        const movedItem = currentExam.questions.splice(oldIndex, 1)[0];
-        currentExam.questions.splice(newIndex, 0, movedItem);
-
-        // Update currentQIndex logic
-        if (currentQIndex === oldIndex) currentQIndex = newIndex;
-        else if (currentQIndex > oldIndex && currentQIndex <= newIndex) currentQIndex--;
-        else if (currentQIndex < oldIndex && currentQIndex >= newIndex) currentQIndex++;
-        
-        renderSidebar();
-        // If we moved the active question, ensure editor shows it
-        loadQuestionToEditor(); 
-      }
-      return false;
-    }
-    function handleQDragEnd() { this.classList.remove('dragging'); }
-
-
-    // --- Rendering & Drag-n-Drop for Options ---
     function loadQuestionToEditor() {
       const q = currentExam.questions[currentQIndex];
       document.getElementById('q-text').value = q.text || '';
       document.getElementById('q-media-type').value = q.media ? q.media.type : '';
       document.getElementById('q-media-src').value = q.media ? q.media.src : '';
-      
-      const container = document.getElementById('options-container');
-      container.innerHTML = '';
+      const container = document.getElementById('options-container'); container.innerHTML = '';
       (q.options || []).forEach((opt, idx) => addOptionToDOM(opt, idx === q.correct));
     }
 
     function addOptionToDOM(text = '', isCorrect = false) {
       const container = document.getElementById('options-container');
-      const div = document.createElement('div');
-      div.className = 'option-row';
-      div.draggable = true;
-      div.innerHTML = `
-        <div class="drag-handle"><svg class="icon"><use href="#icon-drag"/></svg></div>
-        <input type="radio" name="correct-ans" class="radio-custom" ${isCorrect ? 'checked' : ''}>
-        <input type="text" class="input-field opt-text" value="${text}" placeholder="選項內容" onchange="saveCurrentQ()">
-        <button class="btn btn-ghost" style="color:var(--danger)" onclick="removeOption(this)">✕</button>
-      `;
-      
-      // Option DnD Listeners
-      div.addEventListener('dragstart', function(e) { dragSrcEl = this; e.dataTransfer.effectAllowed='move'; this.classList.add('dragging'); });
-      div.addEventListener('dragover', function(e) { if(e.preventDefault)e.preventDefault(); e.dataTransfer.dropEffect='move'; return false; });
-      div.addEventListener('drop', function(e) {
-        e.stopPropagation();
-        if(dragSrcEl !== this) {
-           // Simply swap DOM elements
-           const all = [...container.children];
-           const srcIdx = all.indexOf(dragSrcEl);
-           const targetIdx = all.indexOf(this);
-           if(srcIdx < targetIdx) { container.insertBefore(dragSrcEl, this.nextSibling); }
-           else { container.insertBefore(dragSrcEl, this); }
-           
-           // Important: Re-assign radio values based on new DOM order
-           updateOptionRadios();
-           saveCurrentQ();
-        }
-        return false;
-      });
-      div.addEventListener('dragend', function() { this.classList.remove('dragging'); });
-      
-      container.appendChild(div);
-      updateOptionRadios();
+      const div = document.createElement('div'); div.className = 'option-row'; div.draggable = true;
+      div.innerHTML = `<div class="drag-handle"><svg class="icon"><use href="#icon-drag"/></svg></div><input type="radio" name="correct-ans" class="radio-custom" ${isCorrect ? 'checked' : ''}><input type="text" class="input-field opt-text" value="${text}" placeholder="選項內容" onchange="saveCurrentQ()"><button class="btn btn-ghost" style="color:var(--danger)" onclick="this.parentElement.remove();updateOptionRadios();saveCurrentQ();">✕</button>`;
+      div.addEventListener('dragstart', function(e){dragSrcEl=this;e.dataTransfer.effectAllowed='move';this.classList.add('dragging');});
+      div.addEventListener('dragover', function(e){if(e.preventDefault)e.preventDefault();e.dataTransfer.dropEffect='move';return false;});
+      div.addEventListener('drop', function(e){e.stopPropagation();if(dragSrcEl!==this){const all=[...container.children];const srcIdx=all.indexOf(dragSrcEl);const targetIdx=all.indexOf(this);if(srcIdx<targetIdx)container.insertBefore(dragSrcEl,this.nextSibling);else container.insertBefore(dragSrcEl,this);updateOptionRadios();saveCurrentQ();}return false;});
+      div.addEventListener('dragend', function(){this.classList.remove('dragging');});
+      container.appendChild(div); updateOptionRadios();
     }
-
-    function updateOptionRadios() {
-      const rows = document.querySelectorAll('#options-container .option-row');
-      rows.forEach((row, idx) => {
-        row.querySelector('input[type="radio"]').value = idx;
-      });
-    }
-
+    function updateOptionRadios() { document.querySelectorAll('#options-container .option-row').forEach((row, idx) => { row.querySelector('input[type="radio"]').value = idx; }); }
     function addOption() { addOptionToDOM(); saveCurrentQ(); }
-    function removeOption(btn) { btn.parentElement.remove(); updateOptionRadios(); saveCurrentQ(); }
-    
-    function addQuestion() {
-      saveCurrentQ();
-      currentExam.questions.push({ text: "新題目", options: ["選項1"], correct: 0 });
-      currentQIndex = currentExam.questions.length - 1;
-      renderSidebar();
-      loadQuestionToEditor();
-      const list = document.querySelector('.q-list'); list.scrollTop = list.scrollHeight;
-    }
-
-    function deleteQuestion() {
-      if(currentExam.questions.length <= 1) return alert("至少保留一題");
-      if(!confirm("確定刪除此題？")) return;
-      currentExam.questions.splice(currentQIndex, 1);
-      currentQIndex = Math.max(0, currentQIndex - 1);
-      renderSidebar();
-      loadQuestionToEditor();
-    }
-
-    // --- Storage & Import/Export (Same Logic as V2) ---
+    function addQuestion() { saveCurrentQ(); currentExam.questions.push({ text: "新題目", options: ["選項1"], correct: 0 }); currentQIndex = currentExam.questions.length - 1; renderSidebar(); loadQuestionToEditor(); const list=document.querySelector('.q-list');list.scrollTop=list.scrollHeight; }
+    function deleteQuestion() { if(currentExam.questions.length <= 1) return alert("至少保留一題"); if(!confirm("確定刪除此題？")) return; currentExam.questions.splice(currentQIndex, 1); currentQIndex = Math.max(0, currentQIndex - 1); renderSidebar(); loadQuestionToEditor(); }
     function getDB() { return JSON.parse(localStorage.getItem(DB_KEY) || '{}'); }
-    function saveToLocalStorage(alertUser) {
-      saveCurrentQ();
-      const db = getDB();
-      db[currentExam.id] = currentExam;
-      localStorage.setItem(DB_KEY, JSON.stringify(db));
-      updateLastSavedState();
-      if(alertUser) alert(`✅ "${currentExam.title}" 已儲存！`);
-    }
-
-    function deleteFromDB(id) {
-      if(!confirm("確定刪除？")) return;
-      const db = getDB(); delete db[id]; localStorage.setItem(DB_KEY, JSON.stringify(db));
-      renderStorageList('settings-storage-list', true);
-      renderStorageList('load-list-container', false);
-    }
-    function loadFromDB(id) {
-      const db = getDB();
-      if (db[id]) {
-        currentExam = db[id];
-        // Ensure settings exist for old saves
-        if(!currentExam.settings) currentExam.settings = { timeLimit: 30, antiCheat: true };
-        updateLastSavedState();
-        closeModal('load-modal');
-        startEditor();
-      }
-    }
-
-    function handleFileSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        try {
-          const json = JSON.parse(event.target.result);
-          if (Array.isArray(json)) {
-            currentExam = { id: Date.now().toString(), title: "匯入", questions: json, settings:{timeLimit:30, antiCheat:true}, lastModified: Date.now() };
-          } else {
-            currentExam = json;
-            currentExam.id = Date.now().toString();
-            if(!currentExam.settings) currentExam.settings = { timeLimit: 30, antiCheat: true };
-          }
-          updateLastSavedState();
-          closeModal('load-modal');
-          startEditor();
-        } catch (err) { alert("檔案格式錯誤"); }
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    }
-
-    // --- Export Logic (Modified for Settings) ---
-    function exportExam() {
-      saveToLocalStorage();
-      const jsonStr = JSON.stringify(currentExam, null, 2);
-      downloadFile(currentExam.title + ".json", jsonStr, 'application/json');
-      const htmlContent = generateHtml(currentExam);
-      downloadFile(currentExam.title + ".html", htmlContent, 'text/html');
-    }
-
-    function downloadFile(filename, content, type) {
-      const blob = new Blob([content], { type: type });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-      URL.revokeObjectURL(url);
-    }
+    function saveToLocalStorage(alertUser) { saveCurrentQ(); const db = getDB(); db[currentExam.id] = currentExam; localStorage.setItem(DB_KEY, JSON.stringify(db)); updateLastSavedState(); if(alertUser) alert(`✅ "${currentExam.title}" 已儲存！`); }
+    function deleteFromDB(id) { if(!confirm("確定刪除？")) return; const db = getDB(); delete db[id]; localStorage.setItem(DB_KEY, JSON.stringify(db)); renderStorageList('settings-storage-list', true); renderStorageList('load-list-container', false); }
+    function loadFromDB(id) { const db = getDB(); if (db[id]) { currentExam = db[id]; if(!currentExam.settings) currentExam.settings = { timeLimit: 30, antiCheat: true }; updateLastSavedState(); closeModal('load-modal'); startEditor(); } }
+    function handleFileSelect(e) { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (event) => { try { const json = JSON.parse(event.target.result); if (Array.isArray(json)) { currentExam = { id: Date.now().toString(), title: "匯入", questions: json, settings:{timeLimit:30, antiCheat:true}, lastModified: Date.now() }; } else { currentExam = json; currentExam.id = Date.now().toString(); if(!currentExam.settings) currentExam.settings = { timeLimit: 30, antiCheat: true }; } updateLastSavedState(); closeModal('load-modal'); startEditor(); } catch (err) { alert("檔案格式錯誤"); } }; reader.readAsText(file); e.target.value = ''; }
+    function exportExam() { saveToLocalStorage(); const jsonStr = JSON.stringify(currentExam, null, 2); downloadFile(currentExam.title + ".json", jsonStr, 'application/json'); const htmlContent = generateHtml(currentExam); downloadFile(currentExam.title + ".html", htmlContent, 'text/html'); }
+    function downloadFile(filename, content, type) { const blob = new Blob([content], { type: type }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url); }
 
     function generateHtml(examData) {
-      // Logic for settings
       const minutes = examData.settings.timeLimit || 30;
       const totalSeconds = minutes * 60;
       const timerText = `${minutes.toString().padStart(2,'0')}:00`;
-      
-      // Logic for Anti-Cheat Script
       const antiCheatScript = examData.settings.antiCheat ? `
         blurCount = 0;
         window.addEventListener("blur", () => {
           blurCount++;
-          if (blurCount === 1) {
-            showNotice("⚠️ 警告！偵測到你切換視窗，再切一次將自動交卷！");
-          } else if (blurCount === 2) {
-            showNotice("❌ 第二次切換視窗，系統自動交卷。");
-            showResults(true);
-          }
+          if (blurCount === 1) showNotice("⚠️ 警告！偵測到你切換視窗，再切一次將自動交卷！");
+          else if (blurCount === 2) { showNotice("❌ 第二次切換視窗，系統自動交卷。"); showResults(true); }
         });` : '// 防作弊已關閉';
 
-      return `<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8"><title>${examData.title}</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    html, body { margin: 0; padding: 0; height: 100%; font-family: "Segoe UI", sans-serif; background-color: #f7f7f7; overflow: hidden; user-select: none; }
-    header { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #fff; border-bottom: 1px solid #ccc; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); z-index: 10; }
-    .timer { font-weight: bold; color: #d9534f; font-size: 18px; }
-    .container { position: absolute; top: 60px; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; padding: 30px; box-sizing: border-box; }
-    #rules { max-width: 700px; width: 100%; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); line-height: 1.8; }
-    #start-btn { margin-top: 20px; padding: 12px 24px; font-size: 16px; border: none; border-radius: 5px; background: #28a745; color: white; cursor: pointer; width: 100%; }
-    .question-box { background: white; padding: 30px 30px 80px; border-radius: 12px; width: 100%; max-width: 800px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); position: relative; overflow-y: auto; max-height: 80vh; }
-    .answers label { display: block; margin: 12px 0; font-size: 18px; cursor: pointer; }
-    .button-group { position: fixed; bottom: 20px; right: 30px; display: flex; gap: 10px; z-index: 15; }
-    .btn { padding: 10px 20px; font-size: 16px; border: none; border-radius: 6px; background: #007bff; color: white; cursor: pointer; min-width: 120px; }
-    .hidden { display: none; }
-    #result { margin-top: 30px; background: #e8f8e8; padding: 20px; border-radius: 10px; max-height: 60vh; overflow-y: auto; }
-    @media (max-width: 480px) {
-      .button-group { bottom: 0; left: 0; right: 0; padding: 10px; background:white; border-top:1px solid #eee; }
-      .btn { flex: 1; }
-      .question-box { padding-bottom: 80px; }
-    }
-  </style>
-</head>
-<body oncontextmenu="return false" onkeydown="return false">
-  <header><h1>${examData.title}</h1><div class="timer" id="timer">${timerText}</div></header>
-  <div class="container">
-    <div id="rules">
-      <h2>📜 考試規則</h2>
-      <ul>
-        <li>考試時間：${minutes} 分鐘。</li>
-        <li>共有 ${examData.questions.length} 題，單選。</li>
-        <li>禁止離開視窗或切換分頁${examData.settings.antiCheat ? ' (系統將自動偵測)' : ''}。</li>
-      </ul>
-      <button id="start-btn">開始考試</button>
-    </div>
-    <div class="question-box hidden" id="exam-box">
-      <h2 id="question-text">載入中...</h2>
-      <div class="answers" id="answer-options"></div>
-      <div class="button-group" id="navigation-buttons">
-        <button id="prev-btn" class="btn">上一題</button>
-        <button id="next-btn" class="btn">下一題</button>
-        <button id="finish-btn" class="btn hidden">交卷</button>
-      </div>
-      <div id="result" class="hidden"></div>
-    </div>
-  </div>
-  <script>
-    const questions = ${JSON.stringify(examData.questions)};
-    let current = 0;
-    const userAnswers = JSON.parse(localStorage.getItem("userAnswers") || "[]");
-    let remainingSeconds = ${totalSeconds};
-    let interval;
-    
-    // DOM Elements
-    const els = {
-       qText: document.getElementById("question-text"),
-       opts: document.getElementById("answer-options"),
-       prev: document.getElementById("prev-btn"),
-       next: document.getElementById("next-btn"),
-       finish: document.getElementById("finish-btn"),
-       res: document.getElementById("result"),
-       timer: document.getElementById("timer"),
-       rules: document.getElementById("rules"),
-       box: document.getElementById("exam-box"),
-       nav: document.getElementById("navigation-buttons")
-    };
-
-    function formatTime(sec) {
-      const m = Math.floor(sec / 60).toString().padStart(2, "0");
-      const s = (sec % 60).toString().padStart(2, "0");
-      return m + ":" + s;
+      return `<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="UTF-8"><title>${examData.title}</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>html,body{margin:0;padding:0;height:100%;font-family:"Segoe UI",sans-serif;background-color:#f7f7f7;overflow:hidden;user-select:none}header{position:fixed;top:0;left:0;right:0;height:60px;background:#fff;border-bottom:1px solid #ccc;display:flex;justify-content:space-between;align-items:center;padding:0 30px;box-shadow:0 2px 4px rgba(0,0,0,0.05);z-index:10}.timer{font-weight:bold;color:#d9534f;font-size:18px}.container{position:absolute;top:60px;left:0;right:0;bottom:0;display:flex;justify-content:center;align-items:center;padding:30px;box-sizing:border-box}#rules{max-width:700px;width:100%;background:white;padding:30px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1);line-height:1.8}#start-btn{margin-top:20px;padding:12px 24px;font-size:16px;border:none;border-radius:5px;background:#28a745;color:white;cursor:pointer;width:100%}.question-box{background:white;padding:30px 30px 80px;border-radius:12px;width:100%;max-width:800px;box-shadow:0 8px 20px rgba(0,0,0,0.1);position:relative;overflow-y:auto;max-height:80vh}.answers label{display:block;margin:12px 0;font-size:18px;cursor:pointer}.button-group{position:fixed;bottom:20px;right:30px;display:flex;gap:10px;z-index:15}.btn{padding:10px 20px;font-size:16px;border:none;border-radius:6px;background:#007bff;color:white;cursor:pointer;min-width:120px}.hidden{display:none}#result{margin-top:30px;background:#e8f8e8;padding:20px;border-radius:10px;max-height:60vh;overflow-y:auto}@media(max-width:480px){.button-group{bottom:0;left:0;right:0;padding:10px;background:white;border-top:1px solid #eee}.btn{flex:1}.question-box{padding-bottom:80px}}</style></head><body oncontextmenu="return false" onkeydown="return false"><header><h1>${examData.title}</h1><div class="timer" id="timer">${timerText}</div></header><div class="container"><div id="rules"><h2>📜 考試規則</h2><ul><li>考試時間：${minutes} 分鐘。</li><li>共有 ${examData.questions.length} 題，單選。</li><li>禁止離開視窗或切換分頁${examData.settings.antiCheat?' (系統將自動偵測)':''}。</li></ul><button id="start-btn">開始考試</button></div><div class="question-box hidden" id="exam-box"><h2 id="question-text">載入中...</h2><div class="answers" id="answer-options"></div><div class="button-group" id="navigation-buttons"><button id="prev-btn" class="btn">上一題</button><button id="next-btn" class="btn">下一題</button><button id="finish-btn" class="btn hidden">交卷</button></div><div id="result" class="hidden"></div></div></div><script>const questions=${JSON.stringify(examData.questions)};let current=0;const userAnswers=JSON.parse(localStorage.getItem("userAnswers")||"[]");let remainingSeconds=${totalSeconds};let interval;const els={qText:document.getElementById("question-text"),opts:document.getElementById("answer-options"),prev:document.getElementById("prev-btn"),next:document.getElementById("next-btn"),finish:document.getElementById("finish-btn"),res:document.getElementById("result"),timer:document.getElementById("timer"),rules:document.getElementById("rules"),box:document.getElementById("exam-box"),nav:document.getElementById("navigation-buttons")};function formatTime(sec){const m=Math.floor(sec/60).toString().padStart(2,"0");const s=(sec%60).toString().padStart(2,"0");return m+":"+s}function startTimer(){interval=setInterval(()=>{remainingSeconds--;els.timer.textContent=formatTime(remainingSeconds);if(remainingSeconds<=0){clearInterval(interval);showResults(true)}},1000)}function loadQuestion(){const q=questions[current];els.qText.innerHTML="Q"+(current+1)+". "+q.text;if(q.media){let mHtml="";if(q.media.type==="image")mHtml='<img src="'+q.media.src+'" style="max-width:100%;margin:10px 0;border-radius:8px;">';else if(q.media.type==="audio")mHtml='<audio controls style="width:100%"><source src="'+q.media.src+'"></audio>';else if(q.media.type==="video")mHtml='<video controls style="max-width:100%"><source src="'+q.media.src+'"></video>';els.qText.innerHTML+='<div>'+mHtml+'</div>'}els.opts.innerHTML="";q.options.forEach((opt,i)=>{const checked=userAnswers[current]===i?"checked":"";els.opts.innerHTML+='<label><input type="radio" name="ans" value="'+i+'" '+checked+'> '+opt+'</label>'});els.prev.disabled=current===0;if(current===questions.length-1){els.next.classList.add("hidden");els.finish.classList.remove("hidden")}else{els.next.classList.remove("hidden");els.finish.classList.add("hidden")}}function saveAns(){const sel=document.querySelector('input[name="ans"]:checked');if(sel){userAnswers[current]=parseInt(sel.value);localStorage.setItem("userAnswers",JSON.stringify(userAnswers))}}function showResults(force){saveAns();clearInterval(interval);els.nav.classList.add("hidden");els.timer.textContent="結束";if(!force){if(questions.some((_,i)=>userAnswers[i]===undefined)){if(!confirm("尚有題目未作答，確定交卷？")){els.nav.classList.remove("hidden");startTimer();return}}}let score=0,output="";questions.forEach((q,i)=>{const u=userAnswers[i],c=q.correct,isC=u===c;if(isC)score++;output+="<div><strong>Q"+(i+1)+"</strong>: "+q.text+"<br>你: "+(u!==undefined?q.options[u]:"未答")+" | 正解: "+q.options[c]+" <span style='color:"+(isC?"green":"red")+"'>"+(isC?"✔":"✘")+"</span></div><br>"});els.res.innerHTML="<h3>得分: "+score+" / "+questions.length+"</h3>"+output;els.res.classList.remove("hidden");els.box.scrollTop=0;els.qText.textContent="測驗結果";els.opts.innerHTML="";localStorage.removeItem("userAnswers")}els.prev.onclick=()=>{saveAns();if(current>0)current--;loadQuestion()};els.next.onclick=()=>{saveAns();if(current<questions.length-1)current++;loadQuestion()};els.finish.onclick=()=>showResults();document.getElementById("start-btn").onclick=()=>{els.rules.classList.add("hidden");els.box.classList.remove("hidden");loadQuestion();startTimer();${antiCheatScript}};function showNotice(msg){const b=document.createElement("div");b.textContent=msg;Object.assign(b.style,{position:"fixed",top:"70px",left:"50%",transform:"translateX(-50%)",padding:"10px 20px",background:"#fff3cd",border:"1px solid #ffeeba",color:"#856404",zIndex:9999,borderRadius:"8px"});document.body.appendChild(b);setTimeout(()=>b.remove(),4000)}<\/script></body></html>`;
     }
 
-    function startTimer() {
-      interval = setInterval(() => {
-        remainingSeconds--;
-        els.timer.textContent = formatTime(remainingSeconds);
-        if (remainingSeconds <= 0) { clearInterval(interval); showResults(true); }
-      }, 1000);
-    }
-
-    function loadQuestion() {
-      const q = questions[current];
-      els.qText.innerHTML = "Q" + (current + 1) + ". " + q.text;
-      if (q.media) {
-        let mHtml = "";
-        if (q.media.type === "image") mHtml = '<img src="' + q.media.src + '" style="max-width:100%;margin:10px 0;border-radius:8px;">';
-        else if (q.media.type === "audio") mHtml = '<audio controls style="width:100%"><source src="' + q.media.src + '"></audio>';
-        else if (q.media.type === "video") mHtml = '<video controls style="max-width:100%"><source src="' + q.media.src + '"></video>';
-        els.qText.innerHTML += '<div>' + mHtml + '</div>';
-      }
-      els.opts.innerHTML = "";
-      q.options.forEach((opt, i) => {
-        const checked = userAnswers[current] === i ? "checked" : "";
-        els.opts.innerHTML += '<label><input type="radio" name="ans" value="' + i + '" ' + checked + '> ' + opt + '</label>';
-      });
-      els.prev.disabled = current === 0;
-      if (current === questions.length - 1) { els.next.classList.add("hidden"); els.finish.classList.remove("hidden"); }
-      else { els.next.classList.remove("hidden"); els.finish.classList.add("hidden"); }
-    }
-
-    function saveAns() {
-      const sel = document.querySelector('input[name="ans"]:checked');
-      if (sel) { userAnswers[current] = parseInt(sel.value); localStorage.setItem("userAnswers", JSON.stringify(userAnswers)); }
-    }
-
-    function showResults(force) {
-      saveAns(); clearInterval(interval);
-      els.nav.classList.add("hidden"); els.timer.textContent = "結束";
-      
-      if (!force) {
-        if(questions.some((_,i) => userAnswers[i] === undefined)) {
-           if(!confirm("尚有題目未作答，確定交卷？")) { 
-             els.nav.classList.remove("hidden"); startTimer(); return; 
-           }
-        }
-      }
-
-      let score = 0, output = "";
-      questions.forEach((q, i) => {
-        const u = userAnswers[i], c = q.correct, isC = u === c;
-        if(isC) score++;
-        output += "<div><strong>Q" + (i+1) + "</strong>: " + q.text + "<br>你: " + (u!==undefined?q.options[u]:"未答") + " | 正解: " + q.options[c] + " <span style='color:"+(isC?"green":"red")+"'>" + (isC?"✔":"✘") + "</span></div><br>";
-      });
-      els.res.innerHTML = "<h3>得分: " + score + " / " + questions.length + "</h3>" + output;
-      els.res.classList.remove("hidden"); els.box.scrollTop = 0;
-      els.qText.textContent = "測驗結果"; els.opts.innerHTML = ""; localStorage.removeItem("userAnswers");
-    }
-
-    els.prev.onclick = () => { saveAns(); if(current>0) current--; loadQuestion(); };
-    els.next.onclick = () => { saveAns(); if(current<questions.length-1) current++; loadQuestion(); };
-    els.finish.onclick = () => showResults();
-    
-    document.getElementById("start-btn").onclick = () => {
-      els.rules.classList.add("hidden"); els.box.classList.remove("hidden");
-      loadQuestion(); startTimer();
-      ${antiCheatScript}
-    };
-
-    function showNotice(msg) {
-      const b = document.createElement("div"); b.textContent = msg;
-      Object.assign(b.style, {position:"fixed", top:"70px", left:"50%", transform:"translateX(-50%)", padding:"10px 20px", background:"#fff3cd", border:"1px solid #ffeeba", color:"#856404", zIndex:9999, borderRadius:"8px"});
-      document.body.appendChild(b); setTimeout(()=>b.remove(), 4000);
-    }
-  <\/script>
-</body>
-</html>`;
-    }
-
-    // Modal helpers
     function openModal(id){document.getElementById(id).classList.add('open');}
     function closeModal(id){document.getElementById(id).classList.remove('open');}
     function openLoadModal(){ document.getElementById('load-storage-area').classList.add('hidden'); openModal('load-modal'); }
@@ -729,7 +493,6 @@
        });
        if(!c.firstChild) c.innerHTML='<div style="padding:20px;text-align:center;color:#888">無資料</div>';
     }
-    // Utility for Settings
     function toggleTheme(){ const h=document.documentElement, n=h.getAttribute('data-theme')==='light'?'dark':'light'; h.setAttribute('data-theme',n); localStorage.setItem('theme',n); document.querySelector('#theme-btn use').setAttribute('href',n==='light'?'#icon-sun':'#icon-moon'); }
     function setFontSize(v){ document.documentElement.style.setProperty('--font-base',v+'px'); localStorage.setItem('fontSize',v); }
     function loadSettings(){
@@ -740,5 +503,4 @@
     }
   </script>
 </body>
-
 </html>
