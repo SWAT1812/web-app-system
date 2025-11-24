@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>現代化出題系統 Pro (Max)</title>
+  <title>Exam Editor Pro</title>
   <link rel="icon" href="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000037-1fde21fde4/accessoriestexteditor_94073.ico?ph=925d84add0">
   <style>
     :root {
@@ -171,7 +171,7 @@
 
   <div id="home-view" class="view active">
     <div class="hero-card">
-      <h1 class="hero-title"><svg class="icon" style="width:40px;height:40px;"><use href="#icon-edit"/></svg> 出題系統 Pro</h1>
+      <h1 class="hero-title"><svg class="icon" style="width:40px;height:40px;"><use href="#icon-edit"/></svg> Exam Editor Pro</h1>
       <div class="home-actions">
         <button class="btn btn-primary" onclick="createNewExam()"><svg class="icon"><use href="#icon-plus"/></svg> 創建新題目</button>
         <button class="btn btn-outline" onclick="openLoadModal()"><svg class="icon"><use href="#icon-folder"/></svg> 開啟舊檔</button>
@@ -338,7 +338,7 @@
         if (!isInput) return;
         try {
           const text = await navigator.clipboard.readText();
-          if (!text) return alert("剪貼簿是空的！");
+          if (!text) return alert("剪貼簿內沒有內容");
           const start = targetEl.selectionStart;
           const end = targetEl.selectionEnd;
           const val = targetEl.value;
@@ -376,7 +376,7 @@
     function updateLastSavedState() { lastSavedState = JSON.stringify(currentExam); }
 
     function createNewExam() {
-      currentExam = { id: Date.now().toString(), title: "第一次線上考試", questions: [{ text: "範例題目", options: ["選項A", "選項B"], correct: 0 }], settings: { timeLimit: 30, antiCheat: true }, lastModified: Date.now() };
+      currentExam = { id: Date.now().toString(), title: "未命名試卷", questions: [{ text: "範例題目", options: ["選項A", "選項B"], correct: 0 }], settings: { timeLimit: 30, antiCheat: true }, lastModified: Date.now() };
       updateLastSavedState(); startEditor();
     }
     function startEditor() {
@@ -504,3 +504,4 @@
   </script>
 </body>
 </html>
+
