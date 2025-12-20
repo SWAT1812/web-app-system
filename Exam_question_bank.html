@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>線上題庫瀏覽系統</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --radius: 16px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: "Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header-container {
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #1e293b 0%, #2563eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        /* search-f-s-01 */
+        .search-wrapper {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto 25px auto;
+        }
+
+        /* search-f-SVG-s-01-1 */
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: #94a3b8;
+            pointer-events: none; /* search-f-s-01-2 */
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 16px 20px 16px 48px; /* search-f-s-02 */
+            font-size: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 50px;
+            outline: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-sizing: border-box;
+            background: var(--card-bg);
+            box-shadow: var(--shadow);
+        }
+
+        .search-input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+            background: #fff;
+        }
+
+        .filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: #f0f7ff;
+        }
+
+        .filter-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.25);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #f1f5f9;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+        }
+
+        .card-tag {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            color: var(--primary-color);
+            background: #eff6ff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin: 0 0 12px 0;
+            color: var(--text-main);
+        }
+
+        .card-footer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #e2e8f0;
+            font-size: 13px;
+            color: var(--text-sub);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .no-result {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px;
+            color: var(--text-sub);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>線上題庫瀏覽</h1>
+        
+        <div class="search-wrapper">
+            <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input type="text" id="searchInput" class="search-input" placeholder="搜尋題庫名稱或分類...">
+        </div>
+
+        <div class="filter-container" id="filterContainer"></div>
+    </div>
+
+    <div class="grid-container" id="gridContainer"></div>
+
+    <script>
+        // database
+        const questionBank = [
+            {
+                title: "空白試卷",
+                category: "其他",
+                date: "2025-12-20", 
+                url: "https://1drv.ms/u/c/9c38c5dedbfeab41/IQDG0E9oh1IBQr0uQGICzzHbAcE6wp3kF4Uws3FH0y29Z3c"
+            },
+            ];
+
+        const categories = ["全部", "最新", "國文", "英文", "數學", "自然", "社會", "德文", "台語", "其他"];
+        let currentFilter = "最新";
+        let searchText = "";
+
+        const gridContainer = document.getElementById('gridContainer');
+        const filterContainer = document.getElementById('filterContainer');
+        const searchInput = document.getElementById('searchInput');
+
+        function init() {
+            renderFilters();
+            renderGrid();
+        }
+
+        function renderFilters() {
+            filterContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `filter-btn ${cat === currentFilter ? 'active' : ''}`;
+                btn.innerText = cat;
+                btn.onclick = () => {
+                    currentFilter = cat;
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderGrid();
+                };
+                filterContainer.appendChild(btn);
+            });
+        }
+
+        searchInput.addEventListener('input', (e) => {
+            searchText = e.target.value.toLowerCase().trim();
+            renderGrid();
+        });
+
+        function renderGrid() {
+            gridContainer.innerHTML = '';
+            let filteredData = [...questionBank];
+
+            if (currentFilter === "最新") {
+                filteredData.sort((a, b) => new Date(b.date) - new Date(a.date));
+            } else if (currentFilter !== "全部") {
+                filteredData = filteredData.filter(item => item.category === currentFilter);
+            }
+
+            if (searchText) {
+                const searchTerms = searchText.split(/\s+/);
+                filteredData = filteredData.filter(item => {
+                    const itemText = (item.title + item.category).toLowerCase();
+                    return searchTerms.every(term => itemText.includes(term));
+                });
+            }
+
+            if (filteredData.length === 0) {
+                gridContainer.innerHTML = `<div class="no-result">找不到符合條件的項目</div>`;
+                return;
+            }
+
+            filteredData.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => window.open(item.url, '_blank');
+                card.innerHTML = `
+                    <div>
+                        <span class="card-tag">${item.category}</span>
+                        <h3 class="card-title">${item.title}</h3>
+                    </div>
+                    <div class="card-footer">
+                        <span>新增日期</span>
+                        <span style="color: #1e293b; font-weight:600;">${item.date}</span>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
