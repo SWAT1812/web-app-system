@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Editor</title>
+    <link rel="icon" href="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000037-1fde21fde4/accessoriestexteditor_94073.ico?ph=925d84add0">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            /* m-s-01 */
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        /* show-s-02 */
+        .status-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f9fafb; /* g-bg-s-03 */
+            z-index: 20; /* z-s-04 */
+            transition: opacity 0.3s ease;
+        }
+
+        /* iframe-s-05 */
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            z-index: 30; /* iframe-s-status-layer-05-1 */
+            opacity: 0; /* iframe-s-05-2 */
+            transition: opacity 0.5s ease;
+        }
+
+        /* spin-s-Tailwind包含animate-spin-bkup-06 */
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+    <main class="flex-grow flex flex-col items-center justify-center p-6">
+        <div class="text-center mb-12 animate-fade-in">
+            <div class="w-24 h-24 mx-auto mb-4 bg-white rounded-2xl shadow-xl flex items-center justify-center border border-gray-100">
+                <img src="https://925d84add0.cbaul-cdnwnd.com/19668665250194444779584b14efba7a/200000037-1fde21fde4/accessoriestexteditor_94073.ico?ph=925d84add0" alt="Logo" class="w-16 h-16 drop-shadow-sm">
+            </div>
+            <h1 class="text-4xl font-bold tracking-tight text-gray-900 mb-2">Exam Editor</h1>
+            <p class="text-gray-500">CDA 試題編輯與管理系統</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-5 w-full max-w-md">
+            <button onclick="openBrowseModal()" class="flex-1 group bg-white border border-gray-200 hover:border-blue-300 hover:bg-blue-50 text-gray-700 font-semibold py-4 px-6 rounded-xl shadow-sm transition-all duration-200 transform hover:-translate-y-1 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-list-ul text-blue-500 group-hover:scale-110 transition-transform"></i>
+                瀏覽線上題庫
+            </button>
+            
+            <button onclick="openEditModal()" class="flex-1 group bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-semibold py-4 px-6 rounded-xl shadow-lg shadow-blue-200 transition-all duration-200 transform hover:-translate-y-1 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-pen-to-square group-hover:scale-110 transition-transform"></i>
+                前往編輯
+            </button>
+        </div>
+    </main>
+
+    <footer class="text-center py-6 text-sm text-gray-400">
+        © 2025 CDA. All rights reserved.
+    </footer>
+
+    <div id="browse-modal" class="fixed inset-0 bg-black/60 hidden z-40 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-4xl h-[85vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div class="flex justify-between items-center p-4 border-b bg-white z-50">
+                <h3 class="font-bold text-lg text-gray-700"><i class="fa-solid fa-cloud text-blue-500 mr-2"></i>線上題庫列表</h3>
+                <button onclick="closeModal('browse-modal')" class="text-gray-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="flex-grow relative w-full h-full bg-gray-50">
+                
+                <div id="browse-status" class="status-layer">
+                    <div class="loading-state flex flex-col items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-10 w-10 text-blue-600 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span class="text-gray-500 font-medium">載入中...</span>
+                    </div>
+                    <div class="error-state hidden flex flex-col items-center text-red-500 animate-bounce-short">
+                        <i class="fa-solid fa-circle-exclamation text-4xl mb-3"></i>
+                        <span class="font-medium">無法連結到服務，請稍後再試</span>
+                    </div>
+                </div>
+
+                <iframe id="browse-iframe" src="" allowfullscreen></iframe>
+            </div>
+
+            <div class="p-4 border-t bg-gray-50 flex justify-end z-50">
+                <button onclick="window.open('https://swat1812.github.io/web-app-system/Exam_question_bank.html', '_blank')" class="bg-gray-800 hover:bg-black text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors shadow-md flex items-center">
+                    在新分頁中瀏覽 <i class="fa-solid fa-external-link-alt ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-modal" class="fixed inset-0 bg-white hidden z-50 flex flex-col">
+        <header class="h-14 bg-white border-b flex items-center px-4 shadow-sm z-50 flex-shrink-0 justify-between">
+            <div class="flex items-center">
+                <button onclick="closeModal('edit-modal')" class="text-gray-600 hover:text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 font-medium">
+                    <i class="fa-solid fa-chevron-left"></i>
+                    返回主頁
+                </button>
+            </div>
+            <span class="font-semibold text-gray-700">Exam Editor Studio</span>
+            <div class="w-20"></div> </header>
+
+        <div class="flex-grow relative w-full h-full bg-gray-50">
+            
+            <div id="edit-status" class="status-layer">
+                <div class="loading-state flex flex-col items-center">
+                    <svg class="animate-spin h-12 w-12 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span class="text-gray-600 text-lg">正在初始化編輯器...</span>
+                </div>
+                <div class="error-state hidden flex flex-col items-center text-red-500">
+                    <i class="fa-solid fa-wifi text-5xl mb-3"></i>
+                    <span class="font-medium text-lg">無法連結到服務，請稍後再試</span>
+                    <button onclick="openEditModal()" class="mt-4 px-4 py-2 bg-white border border-red-200 text-red-600 rounded shadow-sm hover:bg-red-50 text-sm">
+                        重試
+                    </button>
+                </div>
+            </div>
+
+            <iframe id="edit-iframe" src="" allowfullscreen></iframe>
+        </div>
+    </div>
+
+    <script>
+        // URL-s-01
+        const BROWSE_URL = "https://swat1812.github.io/web-app-system/Exam_question_bank.html";
+        const EDIT_URL = "https://swat1812.github.io/web-app-system/index.html";
+        
+        // time-s-02
+        let timerMap = {};
+
+        // --- mf-s-03 ---
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        document.onkeydown = function (e) {
+            // s-03-1
+            if (e.keyCode == 123) {
+                return false;
+            }
+            // s-03-2
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 73) {
+                return false;
+            }
+            // s-03-3
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 74) {
+                return false;
+            }
+            // s-03-4
+            if (e.ctrlKey && e.keyCode == 85) {
+                return false;
+            }
+        };
+
+        // --- f-s-04 ---
+
+        function openBrowseModal() {
+            const modal = document.getElementById('browse-modal');
+            const iframe = document.getElementById('browse-iframe');
+            const statusId = 'browse-status';
+            
+            modal.classList.remove('hidden');
+            loadIframeWithTimeout(iframe, BROWSE_URL, statusId);
+        }
+
+        function openEditModal() {
+            const modal = document.getElementById('edit-modal');
+            const iframe = document.getElementById('edit-iframe');
+            const statusId = 'edit-status';
+
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // bg-lock-05
+            loadIframeWithTimeout(iframe, EDIT_URL, statusId);
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('hidden');
+
+            // fs-s-06
+            let iframeId = modalId === 'browse-modal' ? 'browse-iframe' : 'edit-iframe';
+            let iframe = document.getElementById(iframeId);
+            
+            // stop-iframe-load-s-07
+            iframe.src = "";
+            
+            // delet-iframe-t-s-08
+            if (timerMap[iframeId]) {
+                clearTimeout(timerMap[iframeId]);
+            }
+
+            if (modalId === 'edit-modal') {
+                document.body.style.overflow = ''; // r-s-09
+            }
+        }
+
+        // il-logic-s-10
+        function loadIframeWithTimeout(iframe, url, statusDivId) {
+            const statusDiv = document.getElementById(statusDivId);
+            const loader = statusDiv.querySelector('.loading-state');
+            const error = statusDiv.querySelector('.error-state');
+            const iframeId = iframe.id;
+
+            // il-logic-s-10-1
+            iframe.style.opacity = "0";
+            statusDiv.style.zIndex = "40"; // on-iframe-s
+            loader.classList.remove('hidden');
+            error.classList.add('hidden');
+
+            // il-logic-s-10-2
+            iframe.src = url;
+
+            // il-logic-s-10-3
+            // il-logic-s-10-3-1
+            if (timerMap[iframeId]) clearTimeout(timerMap[iframeId]);
+
+            timerMap[iframeId] = setTimeout(() => {
+                // il-logic-s-10-3-2
+                loader.classList.add('hidden');
+                error.classList.remove('hidden');
+                // il-logic-s-10-3-2_1
+            }, 10000); // 10000 ms = 10 秒
+
+            // il-logic-s-10-3-3
+            iframe.onload = function() {
+                // il-logic-s-10-3-3_1
+                if (timerMap[iframeId]) clearTimeout(timerMap[iframeId]);
+
+                // il-logic-s-10-3-3_2
+                // il-logic-s-10-3-3_2-1
+                setTimeout(() => {
+                    iframe.style.opacity = "1";
+                    // il-logic-s-10-3-3_3
+                    statusDiv.style.zIndex = "10"; 
+                }, 300);
+            };
+        }
+
+        // Browse-Modal-s-11
+        window.onclick = function(event) {
+            const modal = document.getElementById('browse-modal');
+            if (event.target == modal) {
+                closeModal('browse-modal');
+            }
+        }
+    </script>
+</body>
+</html>
